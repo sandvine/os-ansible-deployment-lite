@@ -1,0 +1,50 @@
+# Copyright 2016, Sandvine Incorporated
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Creating OpenStack Projects, Users and Roles
+  environment: openstack_env
+  command: "{{item}}"
+  with_items:
+  - openstack project create --description "Admin Project" admin
+  - openstack user create --password "{{admin_password}}" --email admin@{{your_domain}} admin
+  - openstack role create admin
+  - openstack role add --project admin --user admin admin
+  - openstack project create --description "Service Project" service
+  - openstack project create --description "Demo Project" demo
+  - openstack user create --password "{{demo_password}}" --email demo@{{your_domain}} demo
+  - openstack role create _member_
+  - openstack role add --project demo --user demo _member_
+  - openstack role create user
+  - openstack role add --project demo --user demo user
+  - openstack user create --password "{{service_password}}" --email glance@{{your_domain}} glance
+  - openstack role add --project service --user glance admin
+  - openstack user create --password "{{service_password}}" --email nova@{{your_domain}} nova
+  - openstack role add --project service --user nova admin
+  - openstack user create --password "{{service_password}}" --email neutron@{{your_domain}} neutron
+  - openstack role add --project service --user neutron admin
+  - openstack user create --password "{{service_password}}" --email cinder@{{your_domain}} cinder
+  - openstack role add --project service --user cinder admin
+  - openstack user create --password "{{service_password}}" --email swift@{{your_domain}} swift
+  - openstack role add --project service --user swift admin
+  - openstack user create --password "{{service_password}}" --email heat@{{your_domain}} heat
+  - openstack role add --project service --user heat admin
+  - openstack role create heat_stack_owner
+  - openstack role add --project demo --user demo heat_stack_owner
+  - openstack role create heat_stack_user
+  - openstack user create --password "{{service_password}}" --email ceilometer@{{your_domain}} ceilometer
+  - openstack role add --project service --user ceilometer admin
+  - openstack user create --password "{{service_password}}" --email trove@{{your_domain}} trove
+  - openstack role add --project service --user trove admin
+  when: keystone_started|changed
+  register: openstack_pur_ready

@@ -1,0 +1,85 @@
+#
+# OpenStack Definitions
+#
+# Automaically managed by os-deploy*.sh
+#
+
+br_mode: "LBR"
+
+linuxnet_interface_driver: "nova.network.linux_net.LinuxBridgeInterfaceDriver"
+neutron_interface_driver: "neutron.agent.linux.interface.BridgeInterfaceDriver"
+mechanism_drivers: "linuxbridge"
+firewall_driver: "neutron.agent.linux.iptables_firewall.IptablesFirewallDriver"
+
+public_addr: "controller-1.yourdomain.com"
+controller_addr: "controller-1.yourdomain.com"
+
+your_domain: "yourdomain.com"
+
+region: "ca-east-1"
+
+admin_token: "ADMIN_TOKEN"
+
+admin_password: "admin_pass"
+service_password: "service_pass"
+demo_password: "demo_pass"
+
+rabbit_userid: "openstack"
+rabbit_password: "RABBIT_PASS"
+
+metadata_secret: "UltraMeta13"
+
+openstack_env:
+  OS_TOKEN: "{{admin_token}}"
+  OS_URL: "http://{{controller_addr}}:35357/v2.0"
+
+admin_openrc_env:
+  OS_PROJECT_DOMAIN_ID: "default"
+  OS_USER_DOMAIN_ID: "default"
+  OS_PROJECT_NAME: "admin"
+  OS_TENANT_NAME: "admin"
+  OS_USERNAME: "admin"
+  OS_PASSWORD: "admin_pass"
+  OS_AUTH_URL: "http://controller-1.yourdomain.com:35357/v3"
+
+ext_net_subnet: "172.31.254.128/25"
+ext_net_gateway: "172.31.254.129"
+ext_net_start: "172.31.254.130"
+ext_net_end: "172.31.254.254"
+
+heat_domain_pass: "calor_do_heat"
+
+keystone_db: "keystone"
+keystone_db_host: "%"
+keystone_db_user: "keystoneUser"
+keystone_db_pass: "keystonePass"
+
+glance_db: "glance"
+glance_db_host: "%"
+glance_db_user: "glanceUser"
+glance_db_pass: "glancePass"
+
+nova_db: "nova"
+nova_db_host: "%"
+nova_db_user: "novaUser"
+nova_db_pass: "novaPass"
+
+neutron_db: "neutron"
+neutron_db_host: "%"
+neutron_db_user: "neutronUser"
+neutron_db_pass: "neutronPass"
+
+cinder_db: "cinder"
+cinder_db_host: "%"
+cinder_db_user: "cinderUser"
+cinder_db_pass: "cinderPass"
+
+heat_db: "heat"
+heat_db_host: "%"
+heat_db_user: "heatUser"
+heat_db_pass: "heatPass"
+
+trove_db: "trove"
+trove_db_host: "%"
+trove_db_user: "troveUser"
+trove_db_pass: "trovePass"

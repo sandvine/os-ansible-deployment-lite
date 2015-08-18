@@ -1,0 +1,138 @@
+# Copyright 2016, Sandvine Incorporated
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Ubuntu Trusty default sources.list
+  copy: src=sources.list
+        dest=/etc/apt/sources.list
+        owner=root
+        group=root
+        mode=0644
+
+- name: Ubuntu Cloud Archive for OpenStack Kilo
+  apt_repository: repo='deb http://ubuntu-cloud.archive.canonical.com/ubuntu trusty-updates/kilo main'
+
+- name: Installing Cloud Archive Keyring before first update
+  apt: name=ubuntu-cloud-keyring state=present
+
+- name: PPA Repositry of Ubuntu Cloud Archive for OpenStack Kilo with custom patches
+  apt_repository: repo='ppa:sandvine/cloud-archive-kilo'
+
+- name: Running apt-get update
+  apt: update_cache=yes
+
+#- name: Running apt-get dist-upgrade
+#  apt: upgrade=dist
+
+
+- name: Installing base packages
+  action: apt pkg={{item}} state=installed
+  with_items:
+    - curl
+    - ntp
+    - openssl
+    - iptables
+    - htop
+    - iftop
+    - iotop
+    - iptraf-ng
+    - iperf3
+    - logtop
+    - mtr-tiny
+    - ngrep
+    - sysstat
+    - tcpdump
+    - tcpick
+    - psmisc
+    - tmux
+    - tzdata
+    - vim-nox
+    - patch
+    - python-mysqldb
+
+
+- name: Installing Linux 3.19 for Ubuntu LTS
+  action: apt pkg={{item}} state=installed
+  with_items:
+    - linux-generic-lts-vivid
+    - linux-image-extra-virtual-lts-vivid
+
+ 
+#- name: Configure UTC timezone
+#  copy: src=timezone
+#        dest=/etc/timezone
+#        owner=root
+#        group=root
+#        mode=0644
+#  notify:
+#    - update timezone
+
+#- name: Write custom sysctl.conf
+#  copy: src=sysctl.conf
+#        dest=/etc/sysctl.conf
+#        owner=root
+#        group=root
+#        mode=0644
+#        backup=yes
+#  notify:
+#    - reload sysctl
+
+#- name: Write custom sshd_config
+#  copy: src=sshd_config
+#        dest=/etc/ssh/sshd_config
+#        owner=root
+#        group=root
+#        mode=0644
+#        backup=yes
+#  notify:
+#    - restart sshd
+
+
+#- name: Blacklist nf_conntrack module
+#  lineinfile: dest=/etc/modprobe.d/blacklist.conf line="blacklist nf_conntrack"
+
+
+- lineinfile: dest=/etc/modules line="dummy numdummies=3"
+
+- name: Loading dummy network module
+  command: 'modprobe dummy numdummies=3'
+  register: dummy_loaded
+
+# blockinfile not support by Ansible upstream, need a cool solution for this
+#- name: Configuring Dummy interfaces
+#  blockinfile:
+#    dest: /etc/network/interfaces
+#    content: |
+#      allow-hotplug dummy0
+#      iface dummy0 inet manual
+#        up ip link set dev $IFACE up
+#        down ip link set dev $IFACE down
+#      
+#      allow-hotplug dummy1
+#      iface dummy1 inet static
+#        mtu 9000
+#        address 10.0.0.1
+#        netmask 24
+#  when: dummy_loaded
+
+
+- name: Check root's htop config directory
+  file: path=/root/.config/htop
+        state=directory
+
+- name: Write root's htoprc
+  copy: src=htoprc
+        dest=/root/.config/htop/htoprc
+        owner=root
+        group=root
+        mode=0644

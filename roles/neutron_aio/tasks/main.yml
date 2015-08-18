@@ -1,0 +1,217 @@
+# Copyright 2016, Sandvine Incorporated
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Installing Neutron Server and Agents
+  action: apt pkg={{item}} state=installed
+  with_items:
+    - neutron-server
+    - neutron-plugin-ml2
+    - python-neutronclient
+    - neutron-l3-agent
+    - neutron-dhcp-agent
+    - neutron-metadata-agent
+  register: neutron_installed
+
+- name: Installing Neutron Linux Bridge Agent
+  action: apt pkg=neutron-plugin-linuxbridge-agent state=installed
+  when: br_mode == 'LBR' and neutron_installed|changed
+  register: lbr_agent_installed
+
+- name: Installing Neutron Open vSwitch Agent
+  action: apt pkg={{item}} state=installed
+  with_items:
+    - openvswitch-switch
+    - neutron-plugin-openvswitch-agent
+  when: br_mode == 'OVS' and neutron_installed|changed
+  register: ovs_agent_installed
+
+
+- name: Stopping Neutron Server and Agents
+  command: "{{item}}"
+  with_items:
+    - service neutron-dhcp-agent stop
+    - service neutron-l3-agent stop
+    - service neutron-metadata-agent stop
+    - service neutron-server stop
+  ignore_errors: yes
+  when: neutron_installed|changed
+  register: neutron_stopped
+
+- name: Stopping Neutron Linux Bridge Agent
+  command: service neutron-plugin-linuxbridge-agent stop
+  ignore_errors: yes
+  when: br_mode == 'LBR' and neutron_installed|changed
+
+- name: Stopping Neutron Open vSwitch Agent
+  command: service neutron-plugin-openvswitch-agent stop
+  ignore_errors: yes
+  when: br_mode == 'OVS' and neutron_installed|changed
+
+
+- name: Removing non-used sqlite database
+  file: path=/var/lib/neutron/neutron.sqlite state=absent
+  when: neutron_installed|changed
+  register: neutron_cleaned
+
+
+- name: Updating neutron.conf
+  template: src=neutron.conf
+            dest=/etc/neutron/neutron.conf
+            owner=root
+            group=neutron
+            mode=0640
+            backup=yes
+  when: neutron_stopped|changed
+  register: neutron_cfg_updated
+
+
+- name: Updating ml2_conf.ini for Linux Bridges
+  template: src=ml2_conf.ini_linuxbridge
+            dest=/etc/neutron/plugins/ml2/ml2_conf.ini
+            owner=root
+            group=neutron
+            mode=0640
+            backup=yes
+  when: br_mode == 'LBR' and neutron_stopped|changed
+  register: ml2_cfg_lbr_updated
+
+- name: Updating ml2_conf.ini for Open vSwitch
+  template: src=ml2_conf.ini_ovs
+            dest=/etc/neutron/plugins/ml2/ml2_conf.ini
+            owner=root
+            group=neutron
+            mode=0640
+            backup=yes
+  when: br_mode == 'OVS' and neutron_stopped|changed
+  register: ml2_cfg_ovs_updated
+
+
+- name: Updating dhcp_agent.ini
+  template: src=dhcp_agent.ini
+            dest=/etc/neutron/dhcp_agent.ini
+            owner=root
+            group=neutron
+            mode=0644
+            backup=yes
+  when: neutron_stopped|changed
+  register: dhcpa_cfg_updated
+
+- name: Updating dnsmasq-neutron.conf
+  copy: src=dnsmasq-neutron.conf
+        dest=/etc/neutron/dnsmasq-neutron.conf
+        owner=root
+        group=neutron
+        mode=0644
+        backup=yes
+  when: neutron_stopped|changed
+  register: dnsmasqn_cfg_updated
+
+- name: Updating l3_agent.ini
+  template: src=l3_agent.ini
+            dest=/etc/neutron/l3_agent.ini
+            owner=root
+            group=neutron
+            mode=0644
+            backup=yes
+  when: neutron_stopped|changed
+  register: l3a_cfg_updated
+
+- name: Updating metadata_agent.ini
+  template: src=metadata_agent.ini
+            dest=/etc/neutron/metadata_agent.ini
+            owner=root
+            group=neutron
+            mode=0644
+            backup=yes
+  when: neutron_stopped|changed
+  register: metadata_cfg_updated
+
+- name: Updating fwaas_driver.ini
+  template: src=fwaas_driver.ini
+            dest=/etc/neutron/fwaas_driver.ini
+            owner=root
+            group=neutron
+            mode=0644
+            backup=yes
+  when: neutron_stopped|changed
+  register: fwaasd_cfg_updated
+
+
+- name: Populating Neutron Database
+  shell: su -s /bin/sh -c "neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugins/ml2/ml2_conf.ini upgrade head" neutron
+  when: neutron_cfg_updated|changed and ml2_cfg_lbr_updated|changed or ml2_cfg_ovs_updated|changed
+  register: neutron_populated
+
+
+- name: Workaround BUG LP#1470176
+  copy: src=neutron-plugin-linuxbridge-agent.conf
+        dest=/etc/init/neutron-plugin-linuxbridge-agent.conf
+        owner=root
+        group=root
+        mode=0644
+  when: br_mode == 'LBR' and neutron_stopped|changed
+  register: lbragent_job_updated
+
+
+- name: Creating Open vSwitch Bridge
+  openvswitch_bridge: bridge=br-ex state=present
+  when: br_mode == 'OVS' and ovs_agent_installed|changed
+
+- name: Configuring Open vSwitch Bridge Port
+  openvswitch_port: bridge=br-ex port=dummy0 state=present
+  when: br_mode == 'OVS' and ovs_agent_installed|changed
+
+
+- name: Starting Neutron Server and Agents
+  command: "{{item}}"
+  with_items:
+    - service neutron-server restart
+    - service neutron-dhcp-agent restart
+    - service neutron-l3-agent restart
+    - service neutron-metadata-agent restart
+  when: neutron_populated|changed and neutron_cleaned|changed
+  register: neutron_started
+
+- name: Starting Neutron Linux Bridge Agent
+  command: service neutron-plugin-linuxbridge-agent start
+  when: br_mode == 'LBR' and neutron_cleaned|changed
+
+- name: Starting Neutron Open vSwitch Agent
+  command: service neutron-plugin-openvswitch-agent start
+  when: br_mode == 'OVS' and neutron_cleaned|changed
+
+
+- name: Wait a bit until Neutron starts up properly...
+  pause: seconds=5
+  when: neutron_started|changed
+  register: neutron_ready
+
+
+- name: Creating Neutron External Network and its subnet
+  environment: admin_openrc_env
+  shell: neutron net-create ext-net --router:external --provider:physical_network external --provider:network_type flat ; neutron subnet-create ext-net --name ext-subnet --allocation-pool start={{ext_net_start}},end={{ext_net_end}} --disable-dhcp --gateway {{ext_net_gateway}} {{ext_net_subnet}}
+  when: neutron_started|changed
+  register: neutron_net_created
+
+
+- name: Write custom sysctl.conf
+  copy: src=sysctl.conf
+        dest=/etc/sysctl.conf
+        owner=root
+        group=root
+        mode=0644
+        backup=yes
+  notify:
+    - Reload sysctl
+  when: br_mode == 'LBR'

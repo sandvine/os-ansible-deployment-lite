@@ -1,0 +1,67 @@
+# Copyright 2016, Sandvine Incorporated
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Installing Keystone Server
+  action: apt pkg={{item}} state=installed
+  with_items:
+    - keystone
+    - python-openstackclient
+  register: keystone_installed
+
+- name: Stopping Keystone
+  service: name=keystone state=stopped
+  when: keystone_installed|changed
+  register: keystone_stopped
+
+- name: Removing non-used sqlite database
+  file: path=/var/lib/keystone/keystone.db state=absent
+  when: keystone_installed|changed
+  register: keystone_cleaned
+
+
+- name: Updating keystone.conf
+  template: src=keystone.conf
+            dest=/etc/keystone/keystone.conf
+            owner=root
+            group=root
+            mode=0644
+            backup=yes
+  when: keystone_stopped|changed
+  register: keystone_cfg_updated
+
+
+- name: Populating Keystone Database
+  shell: su -s /bin/sh -c "keystone-manage db_sync" keystone
+  when: keystone_cfg_updated|changed
+  register: keystone_populated
+
+
+- name: Starting Keystone
+  service: name=keystone state=restarted
+  when: keystone_populated|changed and keystone_cleaned|changed
+  register: keystone_started
+
+- name: Wait a bit until Kestone starts up properly...
+  pause: seconds=5
+  when: keystone_started|changed
+  register: keystone_ready
+
+
+- include: openstack-pur.yml
+
+- include: openstack-services.yml
+
+- include: openstack-endpoints.yml
+
+- include: openrc-files.yml

@@ -1,0 +1,121 @@
+# Copyright 2016, Sandvine Incorporated
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Installing Nova packages
+  action: apt pkg={{item}} state=installed
+  with_items:
+    - nova-api
+    - nova-cert
+    - nova-conductor
+    - nova-consoleauth
+    - nova-novncproxy
+    - nova-scheduler
+    - python-novaclient
+    - nova-compute
+    - sysfsutils
+    - iptables
+    - ipset
+    - ubuntu-virt-server
+    - pm-utils
+  register: nova_installed
+
+
+- name: Stopping all Nova services
+  command: "{{item}}"
+  with_items:
+    - service nova-api stop
+    - service nova-cert stop
+    - service nova-compute stop
+    - service nova-conductor stop
+    - service nova-consoleauth stop
+    - service nova-scheduler stop
+    - service nova-novncproxy stop
+  ignore_errors: yes
+  when: nova_installed|changed
+  register: nova_stopped
+
+
+- name: Removing non-used sqlite database
+  file: path=/var/lib/nova/nova.sqlite state=absent
+  when: nova_stopped|changed
+  register: nova_cleaned
+
+
+- name: "Workarounding BUG LP #759725"
+  shell: perms==$(stat -c %a /boot/vmlinuz-$(uname -r)) ; if [[ $perms =~ 600 ]]; then dpkg-statoverride --update --add root root 0644 /boot/vmlinuz-$(uname -r) ; fi
+
+
+- name: Updating nova.conf
+  template: src=nova.conf
+        dest=/etc/nova/nova.conf
+        owner=nova
+        group=nova
+        mode=0640
+        backup=yes
+  when: nova_stopped|changed
+  register: nova_cfg_updated
+
+
+- name: Updating nova-compute.conf
+  template: src=nova-compute.conf
+        dest=/etc/nova/nova-compute.conf
+        owner=nova
+        group=nova
+        mode=0640
+        backup=yes
+  when: nova_stopped|changed
+  register: novac_cfg_updated
+
+
+- name: Populating Nova Database
+  shell: su -s /bin/sh -c "nova-manage db sync" nova
+  when: nova_stopped|changed and novac_cfg_updated|changed
+  register: nova_populated
+
+
+- name: Starting all Nova services
+  command: "{{item}}"
+  with_items:
+    - service nova-api start
+    - service nova-cert start
+    - service nova-compute start
+    - service nova-conductor start
+    - service nova-consoleauth start
+    - service nova-scheduler start
+    - service nova-novncproxy start
+  when: nova_populated|changed and nova_stopped|changed
+  register: nova_started
+
+
+- name: Wait a bit until Nova starts up properly...
+  pause: seconds=5
+  when: nova_started|changed
+  register: nova_ready
+
+
+- include: nova-flavors-standards.yml
+
+
+- name: "Reconfiguring Libvirt and enabling VHOST_NET + KSM at the Compute Node (QEmu-KVM)"
+  command: "{{item}}"
+  with_items:
+    - sed -i 's/^VHOST_NET_ENABLED=0/VHOST_NET_ENABLED=1/' /etc/default/qemu-kvm
+    - sed -i 's/^KSM_ENABLED=AUTO/KSM_ENABLED=1/' /etc/default/qemu-kvm
+    - sed -i 's/^#listen_tls = 0/listen_tls = 0/' /etc/libvirt/libvirtd.conf
+    - sed -i 's/^#listen_tcp = 1/listen_tcp = 1/' /etc/libvirt/libvirtd.conf
+    - sed -i 's/^#auth_tcp = "sasl"/auth_tcp = "none"/' /etc/libvirt/libvirtd.conf
+    - sed -i 's/^env libvirtd_opts="-d"/env libvirtd_opts="-d -l"/' /etc/init/libvirt-bin.conf
+    - sed -i 's/^libvirtd_opts="-d"/libvirtd_opts="-d -l"/' /etc/default/libvirt-bin
+  notify: Restart libvirt-bin
+  when: nova_installed|changed

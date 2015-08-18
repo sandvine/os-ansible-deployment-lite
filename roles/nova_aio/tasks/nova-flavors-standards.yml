@@ -1,0 +1,50 @@
+# Copyright 2016, Sandvine Incorporated
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# OpenStack Instance Types
+
+- name: Creating new Nova Flavors
+  environment: admin_openrc_env
+  command: "{{item}}"
+  with_items:
+  # Delete default OpenStack favors
+  - nova flavor-delete 1
+  - nova flavor-delete 2
+  - nova flavor-delete 3
+  - nova flavor-delete 4
+  - nova flavor-delete 5
+  # SAS - Standard Flavor
+  - nova flavor-create --ephemeral 0 --swap 128 --rxtx-factor 1.0 --is-public yes m1.micro auto 256 2 1
+#  - nova flavor-key m1.micro set sas=true
+  - nova flavor-create --ephemeral 2 --swap 256 --rxtx-factor 1.0 --is-public yes m1.tiny auto 512 4 1
+#  - nova flavor-key m1.tiny set sas=true
+  - nova flavor-create --ephemeral 8 --swap 512 --rxtx-factor 1.0 --is-public yes m1.little auto 1024 8 1
+#  - nova flavor-key m1.little set sas=true
+  - nova flavor-create --ephemeral 24 --swap 1024 --rxtx-factor 1.0 --is-public yes m1.small auto 2048 20 1
+#  - nova flavor-key m1.small set sas=true
+  - nova flavor-create --ephemeral 48 --swap 2048 --rxtx-factor 1.0 --is-public yes m1.medium auto 4096 40 2
+#  - nova flavor-key m1.medium set sas=true
+  - nova flavor-create --ephemeral 96 --swap 4096 --rxtx-factor 1.0 --is-public yes m1.large auto 8192 80 4
+#  - nova flavor-key m1.large set sas=true
+  - nova flavor-create --ephemeral 192 --swap 8192 --rxtx-factor 1.0 --is-public yes m1.xlarge auto 16384 160 8
+#  - nova flavor-key m1.xlarge set sas=true
+  # SAS - For development or QCoW2 image creation - small discks
+  - nova flavor-create --ephemeral 2 --swap 1024 --rxtx-factor 1.0 --is-public yes d1.small auto 2048 4 1
+#  - nova flavor-key d1.small set sas=true
+  - nova flavor-create --ephemeral 12 --swap 2048 --rxtx-factor 1.0 --is-public yes d1.medium auto 4096 6 2
+#  - nova flavor-key d1.medium set sas=true
+  - nova flavor-create --ephemeral 24 --swap 4096 --rxtx-factor 1.0 --is-public yes d1.large auto 8192 8 4
+#  - nova flavor-key d1.large set sas=true
+  when: nova_started|changed
+  register: nova_flavors_created

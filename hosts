@@ -1,0 +1,16 @@
+# List of servers to deploy OpenStack
+
+[all-in-one]
+localhost ansible_connection=local
+
+[controller_nodes]
+#192.168.122.10
+
+[network_nodes]
+#jdoe+instance+cloud
+
+[compute_nodes]
+#192.168.122.40
+
+[vagrant-node]
+#os ansible_ssh_user=vagrant ansible_ssh_host=localhost ansible_ssh_port=2222

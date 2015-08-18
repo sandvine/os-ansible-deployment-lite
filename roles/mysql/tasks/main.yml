@@ -1,0 +1,132 @@
+# Copyright 2016, Sandvine Incorporated
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Installing MySQL Server
+  action: apt pkg={{item}} state=installed
+  with_items:
+    - mysql-server
+  register: mysql_installed
+
+- name: Updating my.cnf
+  copy: src=my.cnf
+        dest=/etc/mysql/my.cnf
+        owner=root
+        group=root
+        mode=0644
+        backup=yes
+  when: mysql_installed|changed
+  register: my_cnf_updated
+
+- name: Restarting MySQL
+  service: name=mysql state=restarted
+  when: my_cnf_updated|changed
+  register: mysql_ready
+
+
+- name: Creating Keystone database
+  mysql_db: name=keystone state=present
+  when: mysql_ready|changed
+
+- name: Creating Keystone user
+  mysql_user:
+    host="{{keystone_db_host}}"
+    name="{{keystone_db_user}}"
+    password="{{keystone_db_pass}}"
+    priv="keystone.*:ALL,GRANT"
+    state=present
+  when: mysql_ready|changed
+
+
+- name: Creating Glance database
+  mysql_db: name=glance state=present
+  when: mysql_ready|changed
+
+- name: Creating Gance user
+  mysql_user:
+    host="{{glance_db_host}}"
+    name="{{glance_db_user}}"
+    password="{{glance_db_pass}}"
+    priv="glance.*:ALL,GRANT"
+    state=present
+  when: mysql_ready|changed
+
+
+- name: Creating Nova database
+  mysql_db: name=nova state=present
+  when: mysql_ready|changed
+
+- name: Creating Nova user
+  mysql_user:
+    host="{{nova_db_host}}"
+    name="{{nova_db_user}}"
+    password="{{nova_db_pass}}"
+    priv="nova.*:ALL,GRANT"
+    state=present
+  when: mysql_ready|changed
+
+
+- name: Creating Neutron database
+  mysql_db: name=neutron state=present
+  when: mysql_ready|changed
+
+- name: Creating Neutron user
+  mysql_user:
+    host="{{neutron_db_host}}"
+    name="{{neutron_db_user}}"
+    password="{{neutron_db_pass}}"
+    priv="neutron.*:ALL,GRANT"
+    state=present
+  when: mysql_ready|changed
+
+
+- name: Creating Cinder database
+  mysql_db: name=cinder state=present
+  when: mysql_ready|changed
+
+- name: Creating Cinder user
+  mysql_user:
+    host="{{cinder_db_host}}"
+    name="{{cinder_db_user}}"
+    password="{{cinder_db_pass}}"
+    priv="cinder.*:ALL,GRANT"
+    state=present
+  when: mysql_ready|changed
+
+
+- name: Creating Heat database
+  mysql_db: name=heat state=present
+  when: mysql_ready|changed
+
+- name: Creating Heat user
+  mysql_user:
+    host="{{heat_db_host}}"
+    name="{{heat_db_user}}"
+    password="{{heat_db_pass}}"
+    priv="heat.*:ALL,GRANT"
+    state=present
+  when: mysql_ready|changed
+
+
+- name: Creating Trove database
+  mysql_db: name=trove state=present
+  when: mysql_ready|changed
+
+- name: Creating Trove user
+  mysql_user:
+    host="{{trove_db_host}}"
+    name="{{trove_db_user}}"
+    password="{{trove_db_pass}}"
+    priv="trove.*:ALL,GRANT"
+    state=present
+  when: mysql_ready|changed

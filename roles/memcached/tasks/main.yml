@@ -1,0 +1,34 @@
+# Copyright 2016, Sandvine Incorporated
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Installing Memcached Server
+  action: apt pkg={{item}} state=installed
+  with_items:
+    - memcached
+  register: memcached_installed
+
+- name: Updating memcached.conf
+  copy: src=memcached.conf
+        dest=/etc/memcached.conf
+        owner=root
+        group=root
+        mode=0644
+        backup=yes
+  when: memcached_installed|changed
+  register: memcached_conf_updated
+
+- name: Restarting Memcached
+  service: name=memcached state=restarted
+  when: memcached_conf_updated|changed
+  register: memcached_restarted

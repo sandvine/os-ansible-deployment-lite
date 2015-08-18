@@ -1,0 +1,380 @@
+heat_template_version: 2013-05-23
+
+description: >
+
+
+  HOT template to create standard NFV setup, acting as a L2 Bridge between two VXLAN (or VLAN) networks.
+
+  NOTE: The "NFV Image" is just a plain Linux (or FreeBSD) distribution without any kind of NFV configured. To make it work, you'll need to create a Linux L2 Bridge (or a DPDK App), using the Virtual NICs "eth2 + eth3".
+
+  We have 3 Instances:
+
+  * Linux acting as a L2 Bridge and Policy Control
+  * Linux as Engine
+  * Linux Database
+
+
+  We want to wire them as:
+
+  ----------|ctrl_subnet|------------- Control Network (with Internet access via router_i0)
+         |        |        |
+        ---      ---      ---
+        | |      | |      | |      --|Android|     --|Windows|
+        | |      | |      | |      |               |
+        |D|      |E|      |B|    --------------------------
+        |B|      |N|      |R|----|data_real_subnet1 + dhcp|---|CentOS|
+        | |      |G|      |I|    --------------------------
+        | |      |I|      |D|     |            |      |
+        | |      |N|      |G|     |            |      --|Mac|
+        | |      |E|      |E|     --|Ubuntu|   |
+        | |      | |      | |                  --|Debian|
+        | |      | |      |L|
+        | |      | |      |2|
+        | |      | |      | |------------|data_int_subnet1|----|Internet via router_i1|
+        | |      | |      | |
+        ---      ---      ---
+         |        |        |
+         --|service_subnet|-  <-- Service Network (not routed - no gateway)
+
+parameters:
+  ssh_key:
+    type: string
+    label: "Your SSH keypair name (pre-create please!)"
+    description: |
+        If you have not created your key, please go to
+        Project/Compute/Access & Security, and either import
+        one or create one. If you create it, make sure you keep
+        the downloaded file (as you don't get a second chance)
+    default: default
+
+  public_network:
+    type: string
+    label: Public External Network
+    description: Public Network with Floating IP addresses
+    default: "ext-net"
+
+  nfv_image:
+    type: string
+    label: "NFV L2 Bridge Image (default 'nfv')"
+    description: "NFV Image"
+    default: "CentOS 7 - 64-bit - Cloud Based Image"
+
+  engine_image:
+    type: string
+    label: "Engine Image (default 'engine')"
+    description: "Engine Image"
+    default: "CentOS 6.6 - 64-bit - Cloud Based Image"
+
+  database_image:
+    type: string
+    label: "Database Image (default 'database')"
+    description: "Database Image"
+    default: "CentOS 6.6 - 64-bit - Cloud Based Image"
+
+resources:
+  rtr:
+    type: OS::Neutron::Router
+    properties:
+      admin_state_up: True
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-rtr' } }
+      external_gateway_info:
+        network: { get_param: public_network }
+
+  router_i0:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router: { get_resource: rtr }
+      subnet: { get_resource: ctrl_subnet }
+
+  router_i1:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router: { get_resource: rtr }
+      subnet: { get_resource: data_int_subnet1 }
+
+  floating_ip_1:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: { get_param: public_network }
+
+  floating_ip_2:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: { get_param: public_network }
+
+  floating_ip_3:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: { get_param: public_network }
+
+  engine_ctrl_sec:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-engine-ctrl-rules' } }
+      rules:
+        - protocol: icmp
+        - protocol: tcp
+          port_range_min: 22
+          port_range_max: 22
+        - protocol: tcp
+          port_range_min: 80
+          port_range_max: 80
+        - protocol: tcp
+          port_range_min: 443
+          port_range_max: 443
+
+  engine_srvc_sec:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-engine-srvc-rules' } }
+      rules:
+        - protocol: icmp
+        - protocol: tcp
+          port_range_min: 22
+          port_range_max: 22
+
+  database_ctrl_sec:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-database-ctrl-rules' } }
+      rules:
+        - protocol: icmp
+        - protocol: tcp
+          port_range_min: 22
+          port_range_max: 22
+
+  database_srvc_sec:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-database-srvc-rules' } }
+      rules:
+        - protocol: icmp
+        - protocol: tcp
+          port_range_min: 22
+          port_range_max: 22
+        - protocol: tcp
+          port_range_min: 5432
+          port_range_max: 5432
+
+  nfv_ctrl_sec:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-nfv-ctrl-rules' } }
+      rules:
+        - protocol: icmp
+        - protocol: tcp
+          port_range_min: 22
+          port_range_max: 22
+
+  nfv_srvc_sec:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-nfv-srvc-rules' } }
+      rules:
+        - protocol: icmp
+        - protocol: tcp
+          port_range_min: 22
+          port_range_max: 22
+
+  ctrl_net:
+    type: OS::Neutron::Net
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-control' } }
+
+  ctrl_subnet:
+    type: OS::Neutron::Subnet
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-control' } }
+      dns_nameservers: [8.8.8.8, 8.8.4.4]
+      network: { get_resource: ctrl_net }
+      enable_dhcp: True
+      cidr: 192.168.192/25
+      allocation_pools:
+        - start: 192.168.192.50
+          end: 192.168.192.126
+
+  service_net:
+    type: OS::Neutron::Net
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-service' } }
+
+  service_subnet:
+    type: OS::Neutron::Subnet
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-service' } }
+      dns_nameservers: [8.8.8.8, 8.8.4.4]
+      network: { get_resource: service_net }
+      enable_dhcp: True
+      cidr: 192.168.192.128/25
+      gateway_ip: ""
+
+  data_sub_net1:
+    type: OS::Neutron::Net
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-subscribers-ns1' } }
+
+  data_real_subnet1:
+    type: OS::Neutron::Subnet
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-subscribers-ss1' } }
+      dns_nameservers: [8.8.8.8, 8.8.4.4]
+      network: { get_resource: data_sub_net1 }
+      enable_dhcp: True
+      cidr: 10.192/16
+      gateway_ip: 10.192.0.1
+      allocation_pools:
+        - start: 10.192.0.50
+          end: 10.192.255.254
+
+  data_int_net1:
+    type: OS::Neutron::Net
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-subscribers-ni1' } }
+
+  data_int_subnet1:
+    type: OS::Neutron::Subnet
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-subscribers-si1' } }
+      network: { get_resource: data_int_net1 }
+      enable_dhcp: False
+      cidr: 10.192/16
+      allocation_pools:
+        - start: 10.192.0.2
+          end: 10.192.0.49
+
+  database_ctrl_port:
+    type: OS::Neutron::Port
+    properties:
+      name: {"Fn::Join": ["-", [{ get_param: "OS::stack_name" } , "database-port"]]}
+      network: { get_resource: ctrl_net }
+      fixed_ips:
+        - ip_address: 192.168.192.10
+      security_groups:
+        - { get_resource: database_ctrl_sec }
+
+  database_floating_ip_assoc:
+    type: OS::Neutron::FloatingIPAssociation
+    properties:
+      floatingip_id: { get_resource: floating_ip_3 }
+      port_id: { get_resource: database_ctrl_port }
+
+  engine_ctrl_port:
+    type: OS::Neutron::Port
+    properties:
+      name: {"Fn::Join": ["-", [{ get_param: "OS::stack_name" } , "engine-port"]]}
+      network: { get_resource: ctrl_net }
+      fixed_ips:
+        - ip_address: 192.168.192.20
+      security_groups:
+        - { get_resource: engine_ctrl_sec }
+
+  engine_floating_ip_assoc:
+    type: OS::Neutron::FloatingIPAssociation
+    properties:
+      floatingip_id: { get_resource: floating_ip_2 }
+      port_id: { get_resource: engine_ctrl_port }
+
+  nfv_ctrl_port:
+    type: OS::Neutron::Port
+    properties:
+      name: {"Fn::Join": ["-", [{ get_param: "OS::stack_name" } , "nfv-port"]]}
+      network: { get_resource: ctrl_net }
+      fixed_ips:
+        - ip_address: 192.168.192.30
+      security_groups:
+        - { get_resource: nfv_ctrl_sec }
+
+  nfv_floating_ip_assoc:
+    type: OS::Neutron::FloatingIPAssociation
+    properties:
+      floatingip_id: { get_resource: floating_ip_1 }
+      port_id: { get_resource: nfv_ctrl_port }
+
+  database_srvc_port:
+    type: OS::Neutron::Port
+    properties:
+      name: {"Fn::Join": ["-", [{ get_param: "OS::stack_name" } , "database-port"]]}
+      network: { get_resource: service_net }
+      fixed_ips:
+        - ip_address: 192.168.192.130
+
+  engine_srvc_port:
+    type: OS::Neutron::Port
+    properties:
+      name: {"Fn::Join": ["-", [{ get_param: "OS::stack_name" } , "engine-port"]]}
+      network: { get_resource: service_net }
+      fixed_ips:
+       - ip_address: 192.168.192.140
+ 
+  nfv_srvc_port:
+    type: OS::Neutron::Port
+    properties:
+      name: {"Fn::Join": ["-", [{ get_param: "OS::stack_name" } , "nfv-port"]]}
+      network: { get_resource: service_net }
+      fixed_ips:
+        - ip_address: 192.168.192.150
+
+  nfv_port_int_net1:
+    type: OS::Neutron::Port
+    properties:
+      name: {"Fn::Join": ["-", [{ get_param: "OS::stack_name" } , "nfv-i1-port"]]}
+      network: { get_resource: data_int_net1 }
+      port_security_enabled: False
+
+  nfv_port_sub_net1:
+    type: OS::Neutron::Port
+    properties:
+      name: {"Fn::Join": ["-", [{ get_param: "OS::stack_name" } , "nfv-s1-port"]]}
+      network: { get_resource: data_sub_net1 }
+      port_security_enabled: False
+
+  nfv:
+    type: OS::Nova::Server
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-nfv' } }
+      key_name: { get_param: 'ssh_key' }
+      image: { get_param: 'nfv_image' }
+      admin_user: "cloud"
+      flavor: "m1.medium"
+      networks:
+        - port: { get_resource: nfv_ctrl_port }
+        - port: { get_resource: nfv_srvc_port }
+        - port: { get_resource: nfv_port_sub_net1 }
+        - port: { get_resource: nfv_port_int_net1 }
+
+  database:
+    type: OS::Nova::Server
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-database' } }
+      key_name: { get_param: 'ssh_key' }
+      image: { get_param: 'database_image' }
+      admin_user: "cloud"
+      flavor: "m1.small"
+      networks:
+        - port: { get_resource: database_ctrl_port }
+        - port: { get_resource: database_srvc_port }
+
+  engine:
+    type: OS::Nova::Server
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-engine' } }
+      key_name: { get_param: 'ssh_key' }
+      image: { get_param: 'engine_image' }
+      admin_user: "cloud"
+      flavor: "m1.small"
+      networks:
+        - port: { get_resource: engine_ctrl_port }
+        - port: { get_resource: engine_srvc_port }
+
+outputs:
+  nfv_floating_ip:
+    description: The IP address of the deployed NFV instance
+    value: { get_attr: [floating_ip_1, floating_ip_address] }
+
+  engine_floating_ip:
+    description: The IP address of the deployed Engine instance
+    value: { get_attr: [floating_ip_2, floating_ip_address] }
+
+  database_floating_ip:
+    description: The IP address of the deployed Database instance
+    value: { get_attr: [floating_ip_3, floating_ip_address] }

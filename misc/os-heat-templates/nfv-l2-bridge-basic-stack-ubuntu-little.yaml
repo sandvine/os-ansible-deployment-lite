@@ -1,0 +1,228 @@
+heat_template_version: 2013-05-23
+
+description: >
+
+
+  HOT template to create standard NFV setup, acting as a L2 Bridge between two VXLAN networks.
+
+  NOTE: The "NFV Image" is just a plain Ubuntu Trusty without any kind of NFV configured. To make it work, you'll need to create a Linux L2 Bridge (or a DPDK App), using the Virtual NICs "eth1 + eth2". You can use the /etc/network/interfaces file to create the L2 Network Bridge between eth2 and eth3 (i.e., the "NFV Magic").
+
+  We have 2 Instances:
+
+  * Ubuntu acting as a L2 Bridge and Policy Control
+
+  Within subscriber / corporate / mobile network:
+
+  * Ubuntu as a server
+
+
+  We want to wire them as:
+
+     -------|ctrl_subnet|------------- Control Network (with Internet access via router_i0)
+         |
+        ---
+        | |      --|Android|     --|Windows|
+        |B|      |               |
+        |R|    --------------------------
+        |I|----|data_real_subnet1 + dhcp|---|CentOS|
+        |D|    --------------------------
+        |G|     |            |      |
+        |E|     |            |      --|Mac|
+        | |     --|Ubuntu|   |
+        |L|                  --|Debian|
+        |2|
+        | |
+        |N|
+        |F|------------|data_int_subnet1|----|Internet via router_i1|
+        |V|
+        | |
+        ---
+
+parameters:
+  ssh_key:
+    type: string
+    label: "Your SSH keypair name (pre-create please!)"
+    description: |
+        If you have not created your key, please go to
+        Project/Compute/Access & Security, and either import
+        one or create one. If you create it, make sure you keep
+        the downloaded file (as you don't get a second chance)
+    default: default
+
+  public_network:
+    type: string
+    label: Public External Network
+    description: Public Network with Floating IP addresses
+    default: "ext-net"
+
+  nfv_image:
+    type: string
+    label: "NFV L2 Bridge Image (default 'nfv')"
+    description: "NFV Image"
+    default: "Ubuntu 14.04.2 LTS - Trusty Tahr - 64-bit - Cloud Based Image"
+
+  ubuntusrv1_image:
+    type: string
+    label: "Ubuntu Server - 64-bit"
+    description: "Ubuntu - Trusty Thar - LTS"
+    default: "Ubuntu 14.04.2 LTS - Trusty Tahr - 64-bit - Cloud Based Image"
+
+resources:
+  rtr:
+    type: OS::Neutron::Router
+    properties:
+      admin_state_up: True
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-rtr' } }
+      external_gateway_info:
+        network: { get_param: public_network }
+
+  router_i0:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router: { get_resource: rtr }
+      subnet: { get_resource: ctrl_subnet }
+
+  router_i1:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router: { get_resource: rtr }
+      subnet: { get_resource: data_int_subnet1 }
+
+  floating_ip_1:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: { get_param: public_network }
+
+  basic_security_group:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-basic-rules' } }
+      rules:
+        - protocol: icmp
+        - protocol: tcp
+          port_range_min: 22
+          port_range_max: 22
+
+  ctrl_net:
+    type: OS::Neutron::Net
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-control' } }
+
+  ctrl_subnet:
+    type: OS::Neutron::Subnet
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-control' } }
+      dns_nameservers: [8.8.8.8, 8.8.4.4]
+      network: { get_resource: ctrl_net }
+      enable_dhcp: True
+      cidr: 192.168.192/25
+      allocation_pools:
+        - start: 192.168.192.50
+          end: 192.168.192.126
+
+  data_sub_net1:
+    type: OS::Neutron::Net
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-subscribers-ns1' } }
+
+  data_real_subnet1:
+    type: OS::Neutron::Subnet
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-subscribers-ss1' } }
+      dns_nameservers: [8.8.8.8, 8.8.4.4]
+      network: { get_resource: data_sub_net1 }
+      enable_dhcp: True
+      cidr: 10.192/16
+      gateway_ip: 10.192.0.1
+      allocation_pools:
+        - start: 10.192.0.50
+          end: 10.192.255.254
+
+  data_int_net1:
+    type: OS::Neutron::Net
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-subscribers-ni1' } }
+
+  data_int_subnet1:
+    type: OS::Neutron::Subnet
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-subscribers-si1' } }
+      network: { get_resource: data_int_net1 }
+      enable_dhcp: False
+      cidr: 10.192/16
+      allocation_pools:
+        - start: 10.192.0.2
+          end: 10.192.0.49
+
+  nfv_ctrl_port:
+    type: OS::Neutron::Port
+    properties:
+      name: {"Fn::Join": ["-", [{ get_param: "OS::stack_name" } , "nfv-port"]]}
+      network: { get_resource: ctrl_net }
+      fixed_ips:
+        - ip_address: 192.168.192.30
+      security_groups:
+        - { get_resource: basic_security_group }
+
+  nfv_floating_ip_assoc:
+    type: OS::Neutron::FloatingIPAssociation
+    properties:
+      floatingip_id: { get_resource: floating_ip_1 }
+      port_id: { get_resource: nfv_ctrl_port }
+
+  nfv_port_int_net1:
+    type: OS::Neutron::Port
+    properties:
+      name: {"Fn::Join": ["-", [{ get_param: "OS::stack_name" } , "nfv-i1-port"]]}
+      network: { get_resource: data_int_net1 }
+      port_security_enabled: False
+
+  nfv_port_sub_net1:
+    type: OS::Neutron::Port
+    properties:
+      name: {"Fn::Join": ["-", [{ get_param: "OS::stack_name" } , "nfv-s1-port"]]}
+      network: { get_resource: data_sub_net1 }
+      port_security_enabled: False
+
+  nfv:
+    type: OS::Nova::Server
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-nfv' } }
+      key_name: { get_param: 'ssh_key' }
+      image: { get_param: 'nfv_image' }
+      admin_user: "cloud"
+      flavor: "m1.small"
+      networks:
+        - port: { get_resource: nfv_ctrl_port }
+        - port: { get_resource: nfv_port_sub_net1 }
+        - port: { get_resource: nfv_port_int_net1 }
+      user_data_format: RAW
+      user_data: |
+        #cloud-config
+        system_info:
+          default_user:
+            name: cloud
+            shell: /bin/bash
+
+  ubuntusrv1:
+    type: OS::Nova::Server
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-ubuntu-server' } }
+      key_name: { get_param: 'ssh_key' }
+      image: { get_param: 'ubuntusrv1_image' }
+      admin_user: "cloud"
+      flavor: "m1.small"
+      networks:
+        - network: { get_resource: data_sub_net1 }
+      user_data_format: RAW
+      user_data: |
+        #cloud-config
+        system_info:
+          default_user:
+            name: cloud
+            shell: /bin/bash
+
+outputs:
+  nfv_floating_ip:
+    description: The IP address of the deployed NFV instance
+    value: { get_attr: [floating_ip_1, floating_ip_address] }

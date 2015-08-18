@@ -1,0 +1,387 @@
+heat_template_version: 2013-05-23
+
+description: >
+
+
+  HOT template to create standard PTS setup, acting as a L2 Bridge between two VXLAN (or VLAN) networks.
+
+  NOTE: The "PTS Image" is just a plain Linux (or FreeBSD) distribution without any kind of PTS configured. To make it work, you'll need to create a Linux L2 Bridge (or a DPDK App), using the Virtual NICs "eth2 + eth3".
+
+  We have 3 Instances:
+
+  * PTS - Linux CentOS 7
+  * SDE - Linux CentOS 6.6
+  * SPB - Linux CentOS 6.6
+  * CSD - Linux CentOS 6.6
+
+
+  We want to wire them as:
+
+  ----------|ctrl_subnet|------------- Control Network (with Internet access via router_i0)
+         |        |        |
+        ---      ---      ---
+        | |      | |      | |      --|Android|     --|Windows|
+        | |      | |      | |      |               |
+        | |      | |      | |    --------------------------
+        | |      | |      | |----|data_real_subnet1 + dhcp|---|CentOS|
+        |S|      |S|      |P|    --------------------------
+        |B|      |D|      |T|     |            |      |
+        |P|      |E|      |S|     |            |      --|Mac|
+        | |      | |      | |     --|Ubuntu|   |
+        | |      | |      | |                  --|Debian|
+        | |      | |      | |
+        | |      | |      | |
+        | |      | |      | |------------|data_int_subnet1|----|Internet via router_i1|
+        | |      | |      | |
+        ---      ---      - -
+         |        |        |
+         --|service_subnet|-  <-- Service Network (not routed - no gateway)
+
+parameters:
+  ssh_key:
+    type: string
+    label: "Your SSH keypair name (pre-create please!)"
+    description: |
+        If you have not created your key, please go to
+        Project/Compute/Access & Security, and either import
+        one or create one. If you create it, make sure you keep
+        the downloaded file (as you don't get a second chance)
+    default: default
+
+  public_network:
+    type: string
+    label: Public External Network
+    description: Public Network with Floating IP addresses
+    default: "ext-net"
+
+  pts_image:
+    type: string
+    label: "PTS L2 Bridge Image (default 'pts')"
+    description: "PTS Image"
+    default: "CentOS 7 - 64-bit - Cloud Based Image"
+
+  sde_image:
+    type: string
+    label: "SDE Image (default 'sde')"
+    description: "SDE Image"
+    default: "CentOS 6.6 - 64-bit - Cloud Based Image"
+
+  spb_image:
+    type: string
+    label: "SPB Image (default 'spb')"
+    description: "SPB Image"
+    default: "CentOS 6.6 - 64-bit - Cloud Based Image"
+
+resources:
+  rtr:
+    type: OS::Neutron::Router
+    properties:
+      admin_state_up: True
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-rtr' } }
+      external_gateway_info:
+        network: { get_param: public_network }
+
+  router_i0:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router: { get_resource: rtr }
+      subnet: { get_resource: ctrl_subnet }
+
+  router_i1:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router: { get_resource: rtr }
+      subnet: { get_resource: data_int_subnet1 }
+
+  floating_ip_1:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: { get_param: public_network }
+
+  floating_ip_2:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: { get_param: public_network }
+
+  floating_ip_3:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: { get_param: public_network }
+
+  sde_ctrl_sec:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-sde-ctrl-rules' } }
+      rules:
+        - protocol: icmp
+        - protocol: tcp
+          port_range_min: 22
+          port_range_max: 22
+        - protocol: tcp
+          port_range_min: 80
+          port_range_max: 80
+        - protocol: tcp
+          port_range_min: 443
+          port_range_max: 443
+
+  sde_srvc_sec:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-sde-srvc-rules' } }
+      rules:
+        - protocol: icmp
+        - protocol: tcp
+          port_range_min: 1
+          port_range_max: 65535
+        - protocol: udp
+          port_range_min: 1
+          port_range_max: 65535
+
+  spb_ctrl_sec:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-spb-ctrl-rules' } }
+      rules:
+        - protocol: icmp
+        - protocol: tcp
+          port_range_min: 22
+          port_range_max: 22
+
+  spb_srvc_sec:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-spb-srvc-rules' } }
+      rules:
+        - protocol: icmp
+        - protocol: tcp
+          port_range_min: 1
+          port_range_max: 65535
+        - protocol: udp
+          port_range_min: 1
+          port_range_max: 65535
+
+  pts_ctrl_sec:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-pts-ctrl-rules' } }
+      rules:
+        - protocol: icmp
+        - protocol: tcp
+          port_range_min: 22
+          port_range_max: 22
+
+  pts_srvc_sec:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-pts-srvc-rules' } }
+      rules:
+        - protocol: icmp
+        - protocol: tcp
+          port_range_min: 1
+          port_range_max: 65535
+        - protocol: udp
+          port_range_min: 1
+          port_range_max: 65535
+
+  ctrl_net:
+    type: OS::Neutron::Net
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-control' } }
+
+  ctrl_subnet:
+    type: OS::Neutron::Subnet
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-control' } }
+      dns_nameservers: [192.168.196.20, 192.168.194.20]
+      network: { get_resource: ctrl_net }
+      enable_dhcp: True
+      cidr: 192.168.192/25
+      allocation_pools:
+        - start: 192.168.192.50
+          end: 192.168.192.126
+
+  service_net:
+    type: OS::Neutron::Net
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-service' } }
+
+  service_subnet:
+    type: OS::Neutron::Subnet
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-service' } }
+      dns_nameservers: [192.168.196.20, 192.168.194.20]
+      network: { get_resource: service_net }
+      enable_dhcp: True
+      cidr: 192.168.192.128/25
+      gateway_ip: ""
+
+  data_sub_net1:
+    type: OS::Neutron::Net
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-subscribers-ns1' } }
+
+  data_real_subnet1:
+    type: OS::Neutron::Subnet
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-subscribers-ss1' } }
+      dns_nameservers: [192.168.196.20, 192.168.194.20]
+      network: { get_resource: data_sub_net1 }
+      enable_dhcp: True
+      cidr: 10.192/16
+      gateway_ip: 10.192.0.1
+      allocation_pools:
+        - start: 10.192.0.50
+          end: 10.192.255.254
+
+  data_int_net1:
+    type: OS::Neutron::Net
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-subscribers-ni1' } }
+
+  data_int_subnet1:
+    type: OS::Neutron::Subnet
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-subscribers-si1' } }
+      network: { get_resource: data_int_net1 }
+      enable_dhcp: False
+      cidr: 10.192/16
+      allocation_pools:
+        - start: 10.192.0.2
+          end: 10.192.0.49
+
+  spb_ctrl_port:
+    type: OS::Neutron::Port
+    properties:
+      name: {"Fn::Join": ["-", [{ get_param: "OS::stack_name" } , "spb-port"]]}
+      network: { get_resource: ctrl_net }
+      fixed_ips:
+        - ip_address: 192.168.192.10
+      security_groups:
+        - { get_resource: spb_ctrl_sec }
+
+  spb_floating_ip_assoc:
+    type: OS::Neutron::FloatingIPAssociation
+    properties:
+      floatingip_id: { get_resource: floating_ip_3 }
+      port_id: { get_resource: spb_ctrl_port }
+
+  sde_ctrl_port:
+    type: OS::Neutron::Port
+    properties:
+      name: {"Fn::Join": ["-", [{ get_param: "OS::stack_name" } , "sde-port"]]}
+      network: { get_resource: ctrl_net }
+      fixed_ips:
+        - ip_address: 192.168.192.20
+      security_groups:
+        - { get_resource: sde_ctrl_sec }
+
+  sde_floating_ip_assoc:
+    type: OS::Neutron::FloatingIPAssociation
+    properties:
+      floatingip_id: { get_resource: floating_ip_2 }
+      port_id: { get_resource: sde_ctrl_port }
+
+  pts_ctrl_port:
+    type: OS::Neutron::Port
+    properties:
+      name: {"Fn::Join": ["-", [{ get_param: "OS::stack_name" } , "pts-port"]]}
+      network: { get_resource: ctrl_net }
+      fixed_ips:
+        - ip_address: 192.168.192.30
+      security_groups:
+        - { get_resource: pts_ctrl_sec }
+
+  pts_floating_ip_assoc:
+    type: OS::Neutron::FloatingIPAssociation
+    properties:
+      floatingip_id: { get_resource: floating_ip_1 }
+      port_id: { get_resource: pts_ctrl_port }
+
+  spb_srvc_port:
+    type: OS::Neutron::Port
+    properties:
+      name: {"Fn::Join": ["-", [{ get_param: "OS::stack_name" } , "spb-port"]]}
+      network: { get_resource: service_net }
+      fixed_ips:
+        - ip_address: 192.168.192.130
+
+  sde_srvc_port:
+    type: OS::Neutron::Port
+    properties:
+      name: {"Fn::Join": ["-", [{ get_param: "OS::stack_name" } , "sde-port"]]}
+      network: { get_resource: service_net }
+      fixed_ips:
+       - ip_address: 192.168.192.140
+ 
+  pts_srvc_port:
+    type: OS::Neutron::Port
+    properties:
+      name: {"Fn::Join": ["-", [{ get_param: "OS::stack_name" } , "pts-port"]]}
+      network: { get_resource: service_net }
+      fixed_ips:
+        - ip_address: 192.168.192.150
+
+  pts_port_int_net1:
+    type: OS::Neutron::Port
+    properties:
+      name: {"Fn::Join": ["-", [{ get_param: "OS::stack_name" } , "pts-i1-port"]]}
+      network: { get_resource: data_int_net1 }
+      port_security_enabled: False
+
+  pts_port_sub_net1:
+    type: OS::Neutron::Port
+    properties:
+      name: {"Fn::Join": ["-", [{ get_param: "OS::stack_name" } , "pts-s1-port"]]}
+      network: { get_resource: data_sub_net1 }
+      port_security_enabled: False
+
+  pts:
+    type: OS::Nova::Server
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-pts' } }
+      key_name: { get_param: 'ssh_key' }
+      image: { get_param: 'pts_image' }
+      admin_user: "cloud"
+      flavor: "m1.large"
+      networks:
+        - port: { get_resource: pts_ctrl_port }
+        - port: { get_resource: pts_srvc_port }
+        - port: { get_resource: pts_port_sub_net1 }
+        - port: { get_resource: pts_port_int_net1 }
+
+  spb:
+    type: OS::Nova::Server
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-spb' } }
+      key_name: { get_param: 'ssh_key' }
+      image: { get_param: 'spb_image' }
+      admin_user: "cloud"
+      flavor: "m1.medium"
+      networks:
+        - port: { get_resource: spb_ctrl_port }
+        - port: { get_resource: spb_srvc_port }
+
+  sde:
+    type: OS::Nova::Server
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-sde' } }
+      key_name: { get_param: 'ssh_key' }
+      image: { get_param: 'sde_image' }
+      admin_user: "cloud"
+      flavor: "m1.medium"
+      networks:
+        - port: { get_resource: sde_ctrl_port }
+        - port: { get_resource: sde_srvc_port }
+
+outputs:
+  pts_floating_ip:
+    description: The IP address of the deployed PTS instance
+    value: { get_attr: [floating_ip_1, floating_ip_address] }
+
+  sde_floating_ip:
+    description: The IP address of the deployed SDE instance
+    value: { get_attr: [floating_ip_2, floating_ip_address] }
+
+  spb_floating_ip:
+    description: The IP address of the deployed SPB instance
+    value: { get_attr: [floating_ip_3, floating_ip_address] }

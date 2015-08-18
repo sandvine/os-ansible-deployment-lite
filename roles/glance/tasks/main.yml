@@ -1,0 +1,81 @@
+# Copyright 2016, Sandvine Incorporated
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Installing Glance Server
+  action: apt pkg={{item}} state=installed
+  with_items:
+    - glance
+  register: glance_installed
+
+- name: Stopping Glance API
+  service: name=glance-api state=stopped
+  when: glance_installed|changed
+  register: api_stopped
+
+- name: Stopping Glance Registry
+  service: name=glance-registry state=stopped
+  when: glance_installed|changed
+  register: registry_stopped
+
+- name: Removing non-used sqlite database
+  file: path=/var/lib/glance/glance.sqlite state=absent
+  when: glance_installed|changed
+  register: glance_cleaned
+
+
+- name: Updating glance-api.conf
+  template: src=glance-api.conf
+        dest=/etc/glance/glance-api.conf
+        owner=glance
+        group=glance
+        mode=0644
+        backup=yes
+  when: api_stopped|changed and registry_stopped|changed
+  register: glancea_cfg_updated
+
+
+- name: Updating glance-registry.conf
+  template: src=glance-registry.conf
+        dest=/etc/glance/glance-registry.conf
+        owner=glance
+        group=glance
+        mode=0644
+        backup=yes
+  when: api_stopped|changed and registry_stopped|changed
+  register: glancer_cfg_updated
+
+
+- name: Populating Glance Database
+  shell: su -s /bin/sh -c "glance-manage db_sync" glance
+  when: glancea_cfg_updated|changed and glancer_cfg_updated|changed
+  register: glance_populated
+
+- name: Starting Glance API
+  service: name=glance-api state=restarted
+  when: glance_populated|changed
+  register: api_started
+
+- name: Starting Glance Registry
+  service: name=glance-registry state=restarted
+  when: glance_populated|changed
+  register: registry_started
+
+
+- name: Wait a bit until Glance starts up properly...
+  pause: seconds=5
+  when: api_started|changed and registry_started|changed
+  register: glance_ready
+
+
+- include: default-images.yml

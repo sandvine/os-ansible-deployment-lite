@@ -1,0 +1,69 @@
+# This Playbook deploys OpenStack
+
+- hosts: all-in-one
+  user: administrative
+  sudo: yes
+  roles:
+  - role: bootstrap
+  - role: mysql
+  - role: rabbitmq
+  - role: memcached
+  - role: keystone
+  - role: glance
+  - role: nova_aio
+  - role: neutron_aio
+  - role: horizon
+  - role: cinder
+  - role: heat
+
+- hosts: controller_nodes
+  user: administrative
+  sudo: yes
+  roles:
+  - role: bootstrap
+  - role: mysql
+  - role: rabbitmq
+  - role: memcached
+  - role: keystone
+#  - role: openstack_data
+#  - role: keystone_web
+  - role: glance
+#  - role: glance_images
+#  - role: nova_lbr_ctrl
+#  - role: nova_flavors
+#  - role: neutron_lbr_ctrl
+  - role: horizon
+  - role: cinder
+  - role: heat
+#  - role: ceilometer
+
+- hosts: network_nodes
+  user: administrative
+  sudo: yes
+  roles:
+  - role: bootstrap
+#  - role: neutron_lbr_net_agents
+
+- hosts: compute_nodes
+  user: administrative
+  sudo: yes
+  roles:
+  - role: bootstrap
+#  - role: nova_compute
+#  - role: neutron_lbr_cmpt_agent
+
+- hosts: vagrant-node
+  user: administrative
+  sudo: yes
+  roles:
+  - role: bootstrap
+  - role: mysql
+  - role: rabbitmq
+  - role: memcached
+  - role: keystone
+  - role: glance
+  - role: nova_aio
+  - role: neutron_aio
+  - role: horizon
+  - role: cinder
+  - role: heat
