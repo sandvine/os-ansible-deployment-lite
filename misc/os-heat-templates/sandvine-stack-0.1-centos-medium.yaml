@@ -18,24 +18,24 @@ description: >
   We want to wire them as:
 
   ----------|ctrl_subnet|------------- Control Network (with Internet access via router_i0)
-         |        |        |
-        ---      ---      ---
-        | |      | |      | |      --|Android|     --|Windows|
-        | |      | |      | |      |               |
-        | |      | |      | |    --------------------------
-        | |      | |      | |----|data_real_subnet1 + dhcp|---|CentOS|
-        |S|      |S|      |P|    --------------------------
-        |B|      |D|      |T|     |            |      |
-        |P|      |E|      |S|     |            |      --|Mac|
-        | |      | |      | |     --|Ubuntu|   |
-        | |      | |      | |                  --|Debian|
-        | |      | |      | |
-        | |      | |      | |
-        | |      | |      | |------------|data_int_subnet1|----|Internet via router_i1|
-        | |      | |      | |
-        ---      ---      - -
-         |        |        |
-         --|service_subnet|-  <-- Service Network (not routed - no gateway)
+     |       |        |        |
+    ---     ---      ---      ---
+    | |     | |      | |      | |      --|Android|     --|Windows|
+    | |     | |      | |      | |      |               |
+    | |     | |      | |      | |    --------------------------
+    | |     | |      | |      | |----|data_real_subnet1 + dhcp|---|CentOS|
+    |C|     |S|      |S|      |P|    --------------------------
+    |S|     |B|      |D|      |T|     |            |      |
+    |D|     |P|      |E|      |S|     |            |      --|Mac|
+    | |     | |      | |      | |     --|Ubuntu|   |
+    | |     | |      | |      | |                  --|Debian|
+    | |     | |      | |      | |
+    | |     | |      | |      | |
+    | |     | |      | |      | |------------|data_int_subnet1|----|Internet via router_i1|
+    | |     | |      | |      | |
+    ---     ---      ---      - -
+     |       |        |        |
+     -----|service_subnet|------  <-- Service Network (not routed - no gateway)
 
 parameters:
   ssh_key:
@@ -72,6 +72,12 @@ parameters:
     description: "SPB Image"
     default: "CentOS 6.6 - 64-bit - Cloud Based Image"
 
+  csd_image:
+    type: string
+    label: "CSD Image (default 'csd')"
+    description: "CSD Image"
+    default: "CentOS 6.6 - 64-bit - Cloud Based Image"
+
 resources:
   rtr:
     type: OS::Neutron::Router
@@ -104,6 +110,11 @@ resources:
       floating_network: { get_param: public_network }
 
   floating_ip_3:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: { get_param: public_network }
+
+  floating_ip_4:
     type: OS::Neutron::FloatingIP
     properties:
       floating_network: { get_param: public_network }
@@ -174,6 +185,32 @@ resources:
     type: OS::Neutron::SecurityGroup
     properties:
       name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-pts-srvc-rules' } }
+      rules:
+        - protocol: icmp
+        - protocol: tcp
+          port_range_min: 1
+          port_range_max: 65535
+        - protocol: udp
+          port_range_min: 1
+          port_range_max: 65535
+
+  csd_ctrl_sec:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-csd-ctrl-rules' } }
+      rules:
+        - protocol: icmp
+        - protocol: tcp
+          port_range_min: 22
+          port_range_max: 22
+        - protocol: tcp
+          port_range_min: 443
+          port_range_max: 443
+
+  csd_srvc_sec:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-csd-srvc-rules' } }
       rules:
         - protocol: icmp
         - protocol: tcp
@@ -297,6 +334,22 @@ resources:
       floatingip_id: { get_resource: floating_ip_1 }
       port_id: { get_resource: pts_ctrl_port }
 
+  csd_ctrl_port:
+    type: OS::Neutron::Port
+    properties:
+      name: {"Fn::Join": ["-", [{ get_param: "OS::stack_name" } , "csd-port"]]}
+      network: { get_resource: ctrl_net }
+      fixed_ips:
+        - ip_address: 192.168.192.40
+      security_groups:
+        - { get_resource: csd_ctrl_sec }
+
+  csd_floating_ip_assoc:
+    type: OS::Neutron::FloatingIPAssociation
+    properties:
+      floatingip_id: { get_resource: floating_ip_4 }
+      port_id: { get_resource: csd_ctrl_port }
+
   spb_srvc_port:
     type: OS::Neutron::Port
     properties:
@@ -334,6 +387,14 @@ resources:
       name: {"Fn::Join": ["-", [{ get_param: "OS::stack_name" } , "pts-s1-port"]]}
       network: { get_resource: data_sub_net1 }
       port_security_enabled: False
+
+  csd_srvc_port:
+    type: OS::Neutron::Port
+    properties:
+      name: {"Fn::Join": ["-", [{ get_param: "OS::stack_name" } , "csd-port"]]}
+      network: { get_resource: service_net }
+      fixed_ips:
+        - ip_address: 192.168.192.160
 
   pts:
     type: OS::Nova::Server
@@ -373,6 +434,18 @@ resources:
         - port: { get_resource: sde_ctrl_port }
         - port: { get_resource: sde_srvc_port }
 
+  csd:
+    type: OS::Nova::Server
+    properties:
+      name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-csd' } }
+      key_name: { get_param: 'ssh_key' }
+      image: { get_param: 'csd_image' }
+      admin_user: "cloud"
+      flavor: "m1.little"
+      networks:
+        - port: { get_resource: csd_ctrl_port }
+        - port: { get_resource: csd_srvc_port }
+
 outputs:
   pts_floating_ip:
     description: The IP address of the deployed PTS instance
@@ -385,3 +458,7 @@ outputs:
   spb_floating_ip:
     description: The IP address of the deployed SPB instance
     value: { get_attr: [floating_ip_3, floating_ip_address] }
+
+  csd_floating_ip:
+    description: The IP address of the deployed CSD instance
+    value: { get_attr: [floating_ip_4, floating_ip_address] }
