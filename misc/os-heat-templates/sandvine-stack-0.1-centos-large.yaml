@@ -402,13 +402,18 @@ resources:
       name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-pts' } }
       key_name: { get_param: 'ssh_key' }
       image: { get_param: 'pts_image' }
-      admin_user: "cloud"
       flavor: "m1.large"
       networks:
         - port: { get_resource: pts_ctrl_port }
         - port: { get_resource: pts_srvc_port }
         - port: { get_resource: pts_port_sub_net1 }
         - port: { get_resource: pts_port_int_net1 }
+      user_data_format: RAW
+      user_data: |
+        #cloud-config
+        system_info:
+          default_user:
+            name: "cloud"
 
   spb:
     type: OS::Nova::Server
@@ -416,11 +421,16 @@ resources:
       name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-spb' } }
       key_name: { get_param: 'ssh_key' }
       image: { get_param: 'spb_image' }
-      admin_user: "cloud"
       flavor: "m1.medium"
       networks:
         - port: { get_resource: spb_ctrl_port }
         - port: { get_resource: spb_srvc_port }
+      user_data_format: RAW
+      user_data: |
+        #cloud-config
+        system_info:
+          default_user:
+            name: "cloud"
 
   sde:
     type: OS::Nova::Server
@@ -428,11 +438,16 @@ resources:
       name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-sde' } }
       key_name: { get_param: 'ssh_key' }
       image: { get_param: 'sde_image' }
-      admin_user: "cloud"
       flavor: "m1.medium"
       networks:
         - port: { get_resource: sde_ctrl_port }
         - port: { get_resource: sde_srvc_port }
+      user_data_format: RAW
+      user_data: |
+        #cloud-config
+        system_info:
+          default_user:
+            name: "cloud"
 
   csd:
     type: OS::Nova::Server
@@ -440,11 +455,16 @@ resources:
       name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-csd' } }
       key_name: { get_param: 'ssh_key' }
       image: { get_param: 'csd_image' }
-      admin_user: "cloud"
       flavor: "m1.little"
       networks:
         - port: { get_resource: csd_ctrl_port }
         - port: { get_resource: csd_srvc_port }
+      user_data_format: RAW
+      user_data: |
+        #cloud-config
+        system_info:
+          default_user:
+            name: "cloud"
 
 outputs:
   pts_floating_ip:

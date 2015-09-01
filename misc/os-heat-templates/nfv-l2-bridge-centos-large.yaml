@@ -351,13 +351,18 @@ resources:
       name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-nfv' } }
       key_name: { get_param: 'ssh_key' }
       image: { get_param: 'nfv_image' }
-      admin_user: "cloud"
       flavor: "m1.large"
       networks:
         - port: { get_resource: nfv_ctrl_port }
         - port: { get_resource: nfv_srvc_port }
         - port: { get_resource: nfv_port_sub_net1 }
         - port: { get_resource: nfv_port_int_net1 }
+      user_data_format: RAW
+      user_data: |
+        #cloud-config
+        system_info:
+          default_user:
+            name: "cloud"
 
   database:
     type: OS::Nova::Server
@@ -365,11 +370,16 @@ resources:
       name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-database' } }
       key_name: { get_param: 'ssh_key' }
       image: { get_param: 'database_image' }
-      admin_user: "cloud"
       flavor: "m1.medium"
       networks:
         - port: { get_resource: database_ctrl_port }
         - port: { get_resource: database_srvc_port }
+      user_data_format: RAW
+      user_data: |
+        #cloud-config
+        system_info:
+          default_user:
+            name: "cloud"
 
   engine:
     type: OS::Nova::Server
@@ -377,11 +387,16 @@ resources:
       name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-engine' } }
       key_name: { get_param: 'ssh_key' }
       image: { get_param: 'engine_image' }
-      admin_user: "cloud"
       flavor: "m1.medium"
       networks:
         - port: { get_resource: engine_ctrl_port }
         - port: { get_resource: engine_srvc_port }
+      user_data_format: RAW
+      user_data: |
+        #cloud-config
+        system_info:
+          default_user:
+            name: "cloud"
 
   ubuntusrv1:
     type: OS::Nova::Server
@@ -389,10 +404,15 @@ resources:
       name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-ubuntu-server' } }
       key_name: { get_param: 'ssh_key' }
       image: { get_param: 'ubuntusrv1_image' }
-      admin_user: "cloud"
       flavor: "m1.small"
       networks:
         - network: { get_resource: data_sub_net1 }
+      user_data_format: RAW
+      user_data: |
+        #cloud-config
+        system_info:
+          default_user:
+            name: "cloud"
 
   debiansrv1:
     type: OS::Nova::Server
@@ -400,10 +420,15 @@ resources:
       name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-debian-server' } }
       key_name: { get_param: 'ssh_key' }
       image: { get_param: 'debiansrv1_image' }
-      admin_user: "cloud"
       flavor: "m1.small"
       networks:
         - network: { get_resource: data_sub_net1 }
+      user_data_format: RAW
+      user_data: |
+        #cloud-config
+        system_info:
+          default_user:
+            name: "cloud"
 
 outputs:
   nfv_floating_ip:
