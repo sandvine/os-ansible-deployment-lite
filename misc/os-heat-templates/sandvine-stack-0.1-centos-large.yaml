@@ -403,6 +403,45 @@ resources:
       key_name: { get_param: 'ssh_key' }
       image: { get_param: 'pts_image' }
       flavor: "m1.large"
+      metadata:
+        {
+          common:
+          {
+            int_subnet:  { get_attr: [data_real_subnet1, cidr] }
+          },
+          sde:
+          {
+            1:
+            {
+              ip_c:     { get_attr: [ sde_ctrl_port, fixed_ips, 0, ip_address ] },
+              ip_s:     { get_attr: [ sde_srvc_port, fixed_ips, 0, ip_address ] }
+            }
+          },
+          pts:
+          {
+            1:
+            {
+              ip_c:     { get_attr: [ pts_ctrl_port, fixed_ips, 0, ip_address ] },
+              ip_s:     { get_attr: [ pts_srvc_port, fixed_ips, 0, ip_address ] }
+            }
+          },
+          spb:
+          {
+            1:
+            {
+              ip_c:     { get_attr: [ spb_ctrl_port, fixed_ips, 0, ip_address ] },
+              ip_s:     { get_attr: [ spb_srvc_port, fixed_ips, 0, ip_address ] }
+            }
+          },
+          csd:
+          {
+            1:
+            {
+              ip_c:     { get_attr: [ csd_ctrl_port, fixed_ips, 0, ip_address ] },
+              ip_s:     { get_attr: [ csd_srvc_port, fixed_ips, 0, ip_address ] }
+            }
+          }
+        }
       networks:
         - port: { get_resource: pts_ctrl_port }
         - port: { get_resource: pts_srvc_port }
@@ -422,6 +461,45 @@ resources:
       key_name: { get_param: 'ssh_key' }
       image: { get_param: 'spb_image' }
       flavor: "m1.medium"
+      metadata:
+        {
+          common:
+          {
+            int_subnet:  { get_attr: [data_real_subnet1, cidr] }
+          },
+          sde:
+          {
+            1:
+            {
+              ip_c:     { get_attr: [ sde_ctrl_port, fixed_ips, 0, ip_address ] },
+              ip_s:     { get_attr: [ sde_srvc_port, fixed_ips, 0, ip_address ] }
+            }
+          },
+          pts:
+          {
+            1:
+            {
+              ip_c:     { get_attr: [ pts_ctrl_port, fixed_ips, 0, ip_address ] },
+              ip_s:     { get_attr: [ pts_srvc_port, fixed_ips, 0, ip_address ] }
+            }
+          },
+          spb:
+          {
+            1:
+            {
+              ip_c:     { get_attr: [ spb_ctrl_port, fixed_ips, 0, ip_address ] },
+              ip_s:     { get_attr: [ spb_srvc_port, fixed_ips, 0, ip_address ] }
+            }
+          },
+          csd:
+          {
+            1:
+            {
+              ip_c:     { get_attr: [ csd_ctrl_port, fixed_ips, 0, ip_address ] },
+              ip_s:     { get_attr: [ csd_srvc_port, fixed_ips, 0, ip_address ] }
+            }
+          }
+        }
       networks:
         - port: { get_resource: spb_ctrl_port }
         - port: { get_resource: spb_srvc_port }
@@ -439,6 +517,45 @@ resources:
       key_name: { get_param: 'ssh_key' }
       image: { get_param: 'sde_image' }
       flavor: "m1.medium"
+      metadata:
+        {
+          common:
+          {
+            int_subnet:  { get_attr: [data_real_subnet1, cidr] }
+          },
+          sde:
+          {
+            1:
+            {
+              ip_c:     { get_attr: [ sde_ctrl_port, fixed_ips, 0, ip_address ] },
+              ip_s:     { get_attr: [ sde_srvc_port, fixed_ips, 0, ip_address ] }
+            }
+          },
+          pts:
+          {
+            1:
+            {
+              ip_c:     { get_attr: [ pts_ctrl_port, fixed_ips, 0, ip_address ] },
+              ip_s:     { get_attr: [ pts_srvc_port, fixed_ips, 0, ip_address ] }
+            }
+          },
+          spb:
+          {
+            1:
+            {
+              ip_c:     { get_attr: [ spb_ctrl_port, fixed_ips, 0, ip_address ] },
+              ip_s:     { get_attr: [ spb_srvc_port, fixed_ips, 0, ip_address ] }
+            }
+          },
+          csd:
+          {
+            1:
+            {
+              ip_c:     { get_attr: [ csd_ctrl_port, fixed_ips, 0, ip_address ] },
+              ip_s:     { get_attr: [ csd_srvc_port, fixed_ips, 0, ip_address ] }
+            }
+          }
+        }
       networks:
         - port: { get_resource: sde_ctrl_port }
         - port: { get_resource: sde_srvc_port }
@@ -456,6 +573,45 @@ resources:
       key_name: { get_param: 'ssh_key' }
       image: { get_param: 'csd_image' }
       flavor: "m1.little"
+      metadata:
+        {
+          common:
+          {
+            int_subnet:  { get_attr: [data_real_subnet1, cidr] }
+          },
+          sde:
+          {
+            1:
+            {
+              ip_c:     { get_attr: [ sde_ctrl_port, fixed_ips, 0, ip_address ] },
+              ip_s:     { get_attr: [ sde_srvc_port, fixed_ips, 0, ip_address ] }
+            }
+          },
+          pts:
+          {
+            1:
+            {
+              ip_c:     { get_attr: [ pts_ctrl_port, fixed_ips, 0, ip_address ] },
+              ip_s:     { get_attr: [ pts_srvc_port, fixed_ips, 0, ip_address ] }
+            }
+          },
+          spb:
+          {
+            1:
+            {
+              ip_c:     { get_attr: [ spb_ctrl_port, fixed_ips, 0, ip_address ] },
+              ip_s:     { get_attr: [ spb_srvc_port, fixed_ips, 0, ip_address ] }
+            }
+          },
+          csd:
+          {
+            1:
+            {
+              ip_c:     { get_attr: [ csd_ctrl_port, fixed_ips, 0, ip_address ] },
+              ip_s:     { get_attr: [ csd_srvc_port, fixed_ips, 0, ip_address ] }
+            }
+          }
+        }
       networks:
         - port: { get_resource: csd_ctrl_port }
         - port: { get_resource: csd_srvc_port }
