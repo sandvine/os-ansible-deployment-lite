@@ -72,7 +72,8 @@
             group=neutron
             mode=0640
             backup=yes
-  when: neutron_stopped|changed
+  when: neutron_stopped|changed and item.os_project == "neutron"
+  with_items: mysql_databases
   register: neutron_cfg_updated
 
 

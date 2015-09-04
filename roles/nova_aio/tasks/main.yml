@@ -63,7 +63,8 @@
         group=nova
         mode=0640
         backup=yes
-  when: nova_stopped|changed
+  when: nova_stopped|changed and item.os_project == "nova"
+  with_items: mysql_databases
   register: nova_cfg_updated
 
 
