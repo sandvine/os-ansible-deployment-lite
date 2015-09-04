@@ -62,12 +62,10 @@ echo
 echo "source ~/demo-openrc.sh"
 echo
 echo "If you have 8~16G of RAM:"
-echo "heat stack-create demo -f ~/os-ansible-deployment-lite/misc/os-heat-templates/sandvine-stack-0.1-centos-medium.yaml"
-echo "heat stack-create demo -f ~/os-ansible-deployment-lite/misc/os-heat-templates/sandvine-stack-0.1-centos-large.yaml"
+echo "heat stack-create demo -f ~/os-ansible-deployment-lite/misc/os-heat-templates/sandvine-stack-0.1-centos.yaml"
 echo
 echo "If you have 2~4G of RAM:"
-echo "heat stack-create demo -f ~/os-ansible-deployment-lite/misc/os-heat-templates/nfv-l2-bridge-basic-stack-ubuntu-little.yaml"
-echo "heat stack-create demo -f ~/os-ansible-deployment-lite/misc/os-heat-templates/nfv-l2-bridge-basic-stack-debian-little.yaml"
+echo "heat stack-create demo -f ~/os-ansible-deployment-lite/misc/os-heat-templates/nfv-l2-bridge-basic-stack-ubuntu.yaml"
 echo
 echo "Enjoy it!"
 echo

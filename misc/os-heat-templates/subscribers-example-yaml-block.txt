@@ -23,7 +23,7 @@ resources:
       admin_user: "cloud"
       flavor: "m1.little"
       networks:
-        - network: { get_resource: data_sub_net1 }
+        - network: { get_resource: data_real_subnet1 }
 
   debiansrv1:
     type: OS::Nova::Server
@@ -34,4 +34,4 @@ resources:
       admin_user: "cloud"
       flavor: "m1.little"
       networks:
-        - network: { get_resource: data_sub_net1 }
+        - network: { get_resource: data_real_subnet1 }
