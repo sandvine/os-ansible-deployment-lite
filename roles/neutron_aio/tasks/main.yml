@@ -154,16 +154,6 @@
   register: neutron_populated
 
 
-- name: Workaround BUG LP#1470176
-  copy: src=neutron-plugin-linuxbridge-agent.conf
-        dest=/etc/init/neutron-plugin-linuxbridge-agent.conf
-        owner=root
-        group=root
-        mode=0644
-  when: br_mode == 'LBR' and neutron_stopped|changed
-  register: lbragent_job_updated
-
-
 - name: Creating Open vSwitch Bridge
   openvswitch_bridge: bridge=br-ex state=present
   when: br_mode == 'OVS' and ovs_agent_installed|changed
