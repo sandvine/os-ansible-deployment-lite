@@ -59,13 +59,13 @@ parameters:
     type: string
     label: "NFV L2 Bridge Image (default 'nfv')"
     description: "NFV Image"
-    default: "Ubuntu 14.04.2 LTS - Trusty Tahr - 64-bit - Cloud Based Image"
+    default: "Ubuntu 14.04.3 LTS - Trusty Tahr - 64-bit - Cloud Based Image"
 
   ubuntusrv1_image:
     type: string
     label: "Ubuntu Server - 64-bit"
     description: "Ubuntu - Trusty Thar - LTS"
-    default: "Ubuntu 14.04.2 LTS - Trusty Tahr - 64-bit - Cloud Based Image"
+    default: "Ubuntu 14.04.3 LTS - Trusty Tahr - 64-bit - Cloud Based Image"
 
 resources:
   rtr:

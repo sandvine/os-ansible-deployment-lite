@@ -57,19 +57,19 @@ parameters:
     type: string
     label: "NFV L2 Bridge Image (default 'nfv')"
     description: "NFV Image"
-    default: "Ubuntu 14.04.2 LTS - Trusty Tahr - 64-bit - Cloud Based Image"
+    default: "Ubuntu 14.04.3 LTS - Trusty Tahr - 64-bit - Cloud Based Image"
 
   engine_image:
     type: string
     label: "Engine Image (default 'engine')"
     description: "Engine Image"
-    default: "Ubuntu 14.04.2 LTS - Trusty Tahr - 64-bit - Cloud Based Image"
+    default: "Ubuntu 14.04.3 LTS - Trusty Tahr - 64-bit - Cloud Based Image"
 
   database_image:
     type: string
     label: "Database Image (default 'database')"
     description: "Database Image"
-    default: "Ubuntu 14.04.2 LTS - Trusty Tahr - 64-bit - Cloud Based Image"
+    default: "Ubuntu 14.04.3 LTS - Trusty Tahr - 64-bit - Cloud Based Image"
 
 resources:
   rtr:

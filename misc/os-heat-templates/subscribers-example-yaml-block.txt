@@ -4,7 +4,7 @@ parameters:
     type: string
     label: "Ubuntu Server - 64-bit"
     description: "Ubuntu - Trusty Thar - LTS"
-    default: "Ubuntu 14.04.2 LTS - Trusty Tahr - 64-bit - Cloud Based Image"
+    default: "Ubuntu 14.04.3 LTS - Trusty Tahr - 64-bit - Cloud Based Image"
 
   debiansrv1_image:
     type: string
