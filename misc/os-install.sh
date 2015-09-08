@@ -45,7 +45,7 @@ echo
 echo "Bridge Mode: Open vSwitch"
 echo
 cd ~/os-ansible-deployment-lite
-./os-deploy.sh
+./os-deploy.sh --br-mode=OVS
 
 
 echo

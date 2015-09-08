@@ -15,12 +15,40 @@
 # limitations under the License.
 
 
-# Set Bridge Mode, both Linux Bridges (default) and Open vSwitch are supported.
-if [ "$1" != "OVS" ] && [ "$1" != "LBR" ]
+# Get options, both Linux Bridges and Open vSwitch (default) are supported.
+# You can also use --dry-run to NOT run Ansible in the end, just prepare the
+# configuration files.
+for i in "$@"
+do
+case $i in
+        --br-mode=*)
+        BR_MODE="${i#*=}"
+        shift
+	;;
+        --dry-run)
+        DRYRUN="yes"
+	shift
+        ;;
+esac
+done
+
+# Open vSwitch is the default.
+if [ -z $BR_MODE ]
 then
-	BR_MODE="OVS"
-else
-	BR_MODE="LBR"
+	BR_MODE=OVS
+fi
+
+# Validade the BR_MODE variable.
+if ! [[ "$BR_MODE" = "OVS" || "$BR_MODE" = "LBR" ]]
+then
+	echo
+	echo "Aborting!!!"
+	echo "You need to correctly specify the Bridge Mode for your OpenStack."
+	echo
+	echo "Try:"
+	echo "./os-deploy.sh --br-mode=OVS  # For Open vSwitch."
+	echo "./os-deploy.sh --br-mode=LBR  # For Linux Bridges."
+	exit 1
 fi
 
 
@@ -208,9 +236,16 @@ sed -i -e 's/eth0/'$DEFAULT_GW_INT'/g' roles/cinder/templates/cinder.conf
 
 echo
 echo "Running Ansible, deploying OpenStack:"
-echo
-cd ~/os-ansible-deployment-lite
-ansible-playbook site.yml
+if [ "$DRYRUN" == "yes" ]
+then
+        echo
+	echo "WARNING!!!"
+        echo "Not running Ansible! Just preparing the environment variables..."
+else
+        echo
+	cd ~/os-ansible-deployment-lite
+        ansible-playbook site.yml
+fi
 
 
 # Uploading and/or creating SSH Keypair, only if Nova binary available.

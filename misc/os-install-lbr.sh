@@ -45,7 +45,7 @@ echo
 echo "Bridge Mode: Linux Bridges"
 echo
 cd ~/os-ansible-deployment-lite
-./os-deploy.sh LBR
+./os-deploy.sh --br-mode=LBR
 
 
 echo
