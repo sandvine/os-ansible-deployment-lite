@@ -41,7 +41,8 @@
         group=glance
         mode=0644
         backup=yes
-  when: api_stopped|changed and registry_stopped|changed
+  when: api_stopped|changed and registry_stopped|changed and item.os_project == "glance"
+  with_items: mysql_databases
   register: glancea_cfg_updated
 
 
@@ -52,7 +53,8 @@
         group=glance
         mode=0644
         backup=yes
-  when: api_stopped|changed and registry_stopped|changed
+  when: api_stopped|changed and registry_stopped|changed and item.os_project == "glance"
+  with_items: mysql_databases
   register: glancer_cfg_updated
 
 

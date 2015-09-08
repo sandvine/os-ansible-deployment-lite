@@ -43,7 +43,8 @@
         group=cinder
         mode=0640
         backup=yes
-  when: api_stopped|changed and registry_stopped|changed
+  when: api_stopped|changed and registry_stopped|changed and item.os_project == "cinder"
+  with_items: mysql_databases
   register: cinder_cfg_updated
 
 

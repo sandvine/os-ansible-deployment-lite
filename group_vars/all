@@ -49,37 +49,11 @@ ext_net_end: "172.31.254.254"
 
 heat_domain_pass: "calor_do_heat"
 
-keystone_db: "keystone"
-keystone_db_host: "%"
-keystone_db_user: "keystoneUser"
-keystone_db_pass: "keystonePass"
-
-glance_db: "glance"
-glance_db_host: "%"
-glance_db_user: "glanceUser"
-glance_db_pass: "glancePass"
-
-nova_db: "nova"
-nova_db_host: "%"
-nova_db_user: "novaUser"
-nova_db_pass: "novaPass"
-
-neutron_db: "neutron"
-neutron_db_host: "%"
-neutron_db_user: "neutronUser"
-neutron_db_pass: "neutronPass"
-
-cinder_db: "cinder"
-cinder_db_host: "%"
-cinder_db_user: "cinderUser"
-cinder_db_pass: "cinderPass"
-
-heat_db: "heat"
-heat_db_host: "%"
-heat_db_user: "heatUser"
-heat_db_pass: "heatPass"
-
-trove_db: "trove"
-trove_db_host: "%"
-trove_db_user: "troveUser"
-trove_db_pass: "trovePass"
+mysql_databases:
+  - { os_project: "heat", db_name: "heat", db_host: "%", db_user: "heatUser", db_pass: "heatPass" }
+  - { os_project: "keystone", db_name: "keystone", db_host: "%", db_user: "keystoneUser", db_pass: "keystonePass" }
+  - { os_project: "glance", db_name: "glance", db_host: "%", db_user: "glanceUser", db_pass: "glancePass" }
+  - { os_project: "nova", db_name: "nova", db_host: "%", db_user: "novaUser", db_pass: "novaPass" }
+  - { os_project: "neutron", db_name: "neutron", db_host: "%", db_user: "neutronUser", db_pass: "neutronPass" }
+  - { os_project: "cinder", db_name: "cinder", db_host: "%", db_user: "cinderUser", db_pass: "cinderPass" }
+  - { os_project: "trove", db_name: "trove", db_host: "%", db_user: "troveUser", db_pass: "trovePass" }
