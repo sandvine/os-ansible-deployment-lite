@@ -7,12 +7,12 @@ description: >
 
   NOTE: The "PTS Image" is just a plain Linux (or FreeBSD) distribution without any kind of PTS configured. To make it work, you'll need to create a Linux L2 Bridge (or a DPDK App), using the Virtual NICs "eth2 + eth3".
 
-  We have 3 Instances:
+  We have 4 Instances:
 
   * PTS - Linux CentOS 7
-  * SDE - Linux CentOS 6.6
+  * SDE - Linux CentOS 6.7
   * SPB - Linux CentOS 6.6
-  * CSD - Linux CentOS 6.6
+  * CSD - Linux CentOS 6.7
 
 
   We want to wire them as:
@@ -128,12 +128,6 @@ resources:
         - protocol: tcp
           port_range_min: 22
           port_range_max: 22
-        - protocol: tcp
-          port_range_min: 80
-          port_range_max: 80
-        - protocol: tcp
-          port_range_min: 443
-          port_range_max: 443
 
   sde_srvc_sec:
     type: OS::Neutron::SecurityGroup
@@ -203,6 +197,9 @@ resources:
         - protocol: tcp
           port_range_min: 22
           port_range_max: 22
+        - protocol: tcp
+          port_range_min: 80
+          port_range_max: 80
         - protocol: tcp
           port_range_min: 443
           port_range_max: 443
