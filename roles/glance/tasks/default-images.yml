@@ -29,7 +29,7 @@
   - glance image-create --location http://uec-images.ubuntu.com/releases/12.04.4/12.04.5/ubuntu-12.04-server-cloudimg-amd64.tar.gz --is-public true --disk-format qcow2 --container-format bare --name "Ubuntu 12.04.5 LTS - Precise Pangolin - 64-bit - Cloud Based Image"
   - glance image-create --location http://uec-images.ubuntu.com/releases/14.04.3/release/ubuntu-14.04-server-cloudimg-i386-disk1.img --is-public true --disk-format qcow2 --container-format bare --name "Ubuntu 14.04.3 LTS - Trusty Tahr - 32-bit - Cloud Based Image"
   - glance image-create --location http://uec-images.ubuntu.com/releases/14.04.3/release/ubuntu-14.04-server-cloudimg-amd64-disk1.img --is-public true --disk-format qcow2 --container-format bare --name "Ubuntu 14.04.3 LTS - Trusty Tahr - 64-bit - Cloud Based Image"
-  - glance image-create --location http://cdimage.debian.org/cdimage/openstack/8.1.0/debian-8.1.0-openstack-amd64.qcow2 --is-public true --disk-format qcow2 --container-format bare --name "Debian 8.1.0 - Jessie - 64-bit - Cloud Based Image"
+  - glance image-create --location http://cdimage.debian.org/cdimage/openstack/8.2.0/debian-8.2.0-openstack-amd64.qcow2 --is-public true --disk-format qcow2 --container-format bare --name "Debian 8.2.0 - Jessie - 64-bit - Cloud Based Image"
   - glance image-update --property hw_scsi_model=virtio-scsi --property hw_disk_bus=scsi "CentOS 7 - 64-bit - Cloud Based Image"
   - glance image-update --property hw_scsi_model=virtio-scsi --property hw_disk_bus=scsi "CentOS 6.6 - 64-bit - Cloud Based Image"
   - glance image-update --property hw_scsi_model=virtio-scsi --property hw_disk_bus=scsi "CirrOS 0.3.4 - Minimalist - 32-bit - Cloud Based Image"
