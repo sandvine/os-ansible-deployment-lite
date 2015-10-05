@@ -275,8 +275,17 @@ fi
 
 # Displaying information about the need for an iptables MASQUERADE rule.
 echo 
-echo "After the deployment, you'll need an iptables MASQUERADE rule to allow your"
-echo "Instances to reach the Internet, add the following to your /etc/rc.local:"
+echo "You'll need an iptables MASQUERADE rule to allow your Instances to reach the"
+echo "Internet, so, lets add the following line to your /etc/rc.local file:"
 echo
 echo "iptables -t nat -I POSTROUTING 1 -o $DEFAULT_GW_INT -j MASQUERADE"
+
+sudo sed -i -e '/exit/d' /etc/rc.local
+
+sudo tee --append /etc/rc.local > /dev/null <<EOF
+iptables -t nat -I POSTROUTING 1 -o $DEFAULT_GW_INT -j MASQUERADE
+EOF
+
 echo
+echo "Running /etc/rc.local for you..."
+sudo /etc/rc.local
