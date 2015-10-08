@@ -382,7 +382,7 @@ resources:
         #cloud-config
         system_info:
           default_user:
-            name: "cloud"
+            name: "sandvine"
 
   spb:
     type: OS::Nova::Server
@@ -430,7 +430,7 @@ resources:
         #cloud-config
         system_info:
           default_user:
-            name: "cloud"
+            name: "sandvine"
 
   sde:
     type: OS::Nova::Server
@@ -478,7 +478,7 @@ resources:
         #cloud-config
         system_info:
           default_user:
-            name: "cloud"
+            name: "sandvine"
 
 outputs:
   pts_floating_ip:
