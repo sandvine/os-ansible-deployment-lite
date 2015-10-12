@@ -399,7 +399,7 @@ resources:
       name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-pts' } }
       key_name: { get_param: 'ssh_key' }
       image: { get_param: 'pts_image' }
-      flavor: "m1.large"
+      flavor: "m1.medium"
       metadata:
         {
           common:
