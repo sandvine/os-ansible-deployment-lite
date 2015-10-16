@@ -47,15 +47,15 @@ fi
 
 echo
 echo "Configuring group_vars/all file based on current environment..."
-sed -i -e 's/controller-1.yourdomain.com/'$FQDN'/g' group_vars/all
-sed -i -e 's/yourdomain.com/'$DOMAIN'/g' group_vars/all
+sed -i -e 's/controller-1.yourdomain.com/'$FQDN'/g' ansible/group_vars/all
+sed -i -e 's/yourdomain.com/'$DOMAIN'/g' ansible/group_vars/all
 
 
 echo
 echo "Configuring site.yml and OpenStack OpenRC files with your current $WHOAMI user..."
-sed -i -e 's/administrative/'$WHOAMI'/g' site.yml
-sed -i -e 's/administrative/'$WHOAMI'/g' roles/keystone/tasks/main.yml
-sed -i -e 's/administrative/'$WHOAMI'/g' roles/heat/tasks/main.yml
+sed -i -e 's/administrative/'$WHOAMI'/g' ansible/site.yml
+sed -i -e 's/administrative/'$WHOAMI'/g' ansible/roles/keystone/tasks/main.yml
+sed -i -e 's/administrative/'$WHOAMI'/g' ansible/roles/heat/tasks/main.yml
 
 
 DEFAULT_GW_INT=eth0
@@ -66,8 +66,8 @@ echo "dafault route via:" $DEFAULT_GW_INT
 
 echo
 echo "Preparing Ansible templates based on current default gateway interface..."
-sed -i -e 's/eth0/'$DEFAULT_GW_INT'/g' roles/nova_aio/templates/nova.conf
-sed -i -e 's/eth0/'$DEFAULT_GW_INT'/g' roles/cinder/templates/cinder.conf
+sed -i -e 's/eth0/'$DEFAULT_GW_INT'/g' ansible/roles/nova_aio/templates/nova.conf
+sed -i -e 's/eth0/'$DEFAULT_GW_INT'/g' ansible/roles/cinder/templates/cinder.conf
 
 
 echo 

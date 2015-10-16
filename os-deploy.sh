@@ -189,36 +189,36 @@ echo "Configuring Bridge Mode to "$BR_MODE" on group_vars/all file..."
 # http://docs.openstack.org/networking-guide/scenario_legacy_lb.html
 if [ "$BR_MODE" = "LBR" ]
 then
-	sed -i -e 's/br_mode:.*/br_mode: "LBR"/' group_vars/all
-	sed -i -e 's/linuxnet_interface_driver:.*/linuxnet_interface_driver: "nova.network.linux_net.LinuxBridgeInterfaceDriver"/' group_vars/all
-	sed -i -e 's/neutron_interface_driver:.*/neutron_interface_driver: "neutron.agent.linux.interface.BridgeInterfaceDriver"/' group_vars/all
-	sed -i -e 's/mechanism_drivers:.*/mechanism_drivers: "linuxbridge"/' group_vars/all
-	sed -i -e 's/firewall_driver:.*/firewall_driver: "neutron.agent.linux.iptables_firewall.IptablesFirewallDriver"/' group_vars/all
+	sed -i -e 's/br_mode:.*/br_mode: "LBR"/' ansible/group_vars/all
+	sed -i -e 's/linuxnet_interface_driver:.*/linuxnet_interface_driver: "nova.network.linux_net.LinuxBridgeInterfaceDriver"/' ansible/group_vars/all
+	sed -i -e 's/neutron_interface_driver:.*/neutron_interface_driver: "neutron.agent.linux.interface.BridgeInterfaceDriver"/' ansible/group_vars/all
+	sed -i -e 's/mechanism_drivers:.*/mechanism_drivers: "linuxbridge"/' ansible/group_vars/all
+	sed -i -e 's/firewall_driver:.*/firewall_driver: "neutron.agent.linux.iptables_firewall.IptablesFirewallDriver"/' ansible/group_vars/all
 fi
 # http://docs.openstack.org/networking-guide/scenario_legacy_ovs.html
 if [ "$BR_MODE" = "OVS" ]
 then 
-         sed -i -e 's/br_mode:.*/br_mode: "OVS"/' group_vars/all
-         sed -i -e 's/linuxnet_interface_driver:.*/linuxnet_interface_driver: "nova.network.linux_net.LinuxOVSInterfaceDriver"/' group_vars/all
-         sed -i -e 's/neutron_interface_driver:.*/neutron_interface_driver: "neutron.agent.linux.interface.OVSInterfaceDriver"/' group_vars/all
-         sed -i -e 's/mechanism_drivers:.*/mechanism_drivers: "openvswitch"/' group_vars/all
-         sed -i -e 's/firewall_driver:.*/firewall_driver: "neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver"/' group_vars/all
+         sed -i -e 's/br_mode:.*/br_mode: "OVS"/' ansible/group_vars/all
+         sed -i -e 's/linuxnet_interface_driver:.*/linuxnet_interface_driver: "nova.network.linux_net.LinuxOVSInterfaceDriver"/' ansible/group_vars/all
+         sed -i -e 's/neutron_interface_driver:.*/neutron_interface_driver: "neutron.agent.linux.interface.OVSInterfaceDriver"/' ansible/group_vars/all
+         sed -i -e 's/mechanism_drivers:.*/mechanism_drivers: "openvswitch"/' ansible/group_vars/all
+         sed -i -e 's/firewall_driver:.*/firewall_driver: "neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver"/' ansible/group_vars/all
 fi
 
 
 # Configuring FQDN and Domain on group_vars/all
 echo
 echo "Configuring group_vars/all file based on current environment..."
-sed -i -e 's/controller-1.yourdomain.com/'$FQDN'/g' group_vars/all
-sed -i -e 's/yourdomain.com/'$DOMAIN'/g' group_vars/all
+sed -i -e 's/controller-1.yourdomain.com/'$FQDN'/g' ansible/group_vars/all
+sed -i -e 's/yourdomain.com/'$DOMAIN'/g' ansible/group_vars/all
 
 
 # Configuring site.yml and some roles
 echo
 echo "Configuring site.yml and OpenStack OpenRC files with your current $WHOAMI user..."
-sed -i -e 's/administrative/'$WHOAMI'/g' site.yml
-sed -i -e 's/administrative/'$WHOAMI'/g' roles/keystone/tasks/openrc-files.yml
-sed -i -e 's/administrative/'$WHOAMI'/g' roles/heat/tasks/main.yml
+sed -i -e 's/administrative/'$WHOAMI'/g' ansible/site.yml
+sed -i -e 's/administrative/'$WHOAMI'/g' ansible/roles/keystone/tasks/openrc-files.yml
+sed -i -e 's/administrative/'$WHOAMI'/g' ansible/roles/heat/tasks/main.yml
 
 
 # Configuring the default interface
@@ -230,8 +230,8 @@ echo "dafault route via:" $DEFAULT_GW_INT
 
 echo
 echo "Preparing Ansible templates based on current default gateway interface..."
-sed -i -e 's/eth0/'$DEFAULT_GW_INT'/g' roles/nova_aio/templates/nova.conf
-sed -i -e 's/eth0/'$DEFAULT_GW_INT'/g' roles/cinder/templates/cinder.conf
+sed -i -e 's/eth0/'$DEFAULT_GW_INT'/g' ansible/roles/nova_aio/templates/nova.conf
+sed -i -e 's/eth0/'$DEFAULT_GW_INT'/g' ansible/roles/cinder/templates/cinder.conf
 
 
 echo
@@ -243,7 +243,7 @@ then
         echo "Not running Ansible! Just preparing the environment variables..."
 else
         echo
-	cd ~/os-ansible-deployment-lite
+	cd ~/os-ansible-deployment-lite/ansible
         ansible-playbook site.yml
 fi
 
