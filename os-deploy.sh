@@ -249,26 +249,37 @@ fi
 
 
 # Uploading and/or creating SSH Keypair, only if Nova binary available.
-if [ -f ~/.ssh/id_dsa.pub ] && [ -f /usr/bin/nova ]
+if [ "$DRYRUN" == "yes" ]
 then
 
-	echo
-	echo "Creating and uploding your SSH Keypair into OpenStack..."
-	echo
-        echo "Safe SSH Key found, uploading it to OpenStack."
-        source ~/demo-openrc.sh
-        nova keypair-add --pub-key ~/.ssh/id_dsa.pub default
+        echo
+	echo "WARNING!!!"
+        echo "Not creating / uploading SSH Keypairs on --dry-run..."
 
 else
 
-	echo
-	echo "Creating and uploding your SSH Keypair into OpenStack..."
-	echo
-        echo "Creating a safe SSH Keypair for you and uploading it to OpenStack."
-	echo
-        ssh-keygen -t dsa -N "" -f ~/.ssh/id_dsa
-        source ~/demo-openrc.sh
-        nova keypair-add --pub-key ~/.ssh/id_dsa.pub default
+	if [ -f ~/.ssh/id_dsa.pub ] && [ -f /usr/bin/nova ]
+	then
+
+		echo
+		echo "Creating and uploding your SSH Keypair into OpenStack..."
+		echo
+		echo "Safe SSH Key found, uploading it to OpenStack."
+		source ~/demo-openrc.sh
+		nova keypair-add --pub-key ~/.ssh/id_dsa.pub default
+
+	else
+
+		echo
+		echo "Creating and uploding your SSH Keypair into OpenStack..."
+		echo
+	        echo "Creating a safe SSH Keypair for you and uploading it to OpenStack."
+		echo
+	        ssh-keygen -t dsa -N "" -f ~/.ssh/id_dsa
+	        source ~/demo-openrc.sh
+	        nova keypair-add --pub-key ~/.ssh/id_dsa.pub default
+
+	fi
 
 fi
 
