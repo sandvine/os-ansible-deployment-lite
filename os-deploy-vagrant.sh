@@ -46,13 +46,13 @@ fi
 
 
 echo
-echo "Configuring group_vars/all file based on current environment..."
+echo "Configuring ansible/group_vars/all file based on current environment..."
 sed -i -e 's/controller-1.yourdomain.com/'$FQDN'/g' ansible/group_vars/all
 sed -i -e 's/yourdomain.com/'$DOMAIN'/g' ansible/group_vars/all
 
 
 echo
-echo "Configuring site.yml and OpenStack OpenRC files with your current $WHOAMI user..."
+echo "Configuring ansible/site.yml and OpenStack OpenRC files with your current $WHOAMI user..."
 sed -i -e 's/administrative/'$WHOAMI'/g' ansible/site.yml
 sed -i -e 's/administrative/'$WHOAMI'/g' ansible/roles/keystone/tasks/main.yml
 sed -i -e 's/administrative/'$WHOAMI'/g' ansible/roles/heat/tasks/main.yml
