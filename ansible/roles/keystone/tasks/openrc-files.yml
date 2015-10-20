@@ -14,14 +14,14 @@
 
 - name: Creating admin-openrc.sh file
   template: src=admin-openrc.sh
-            dest=/home/sandvine/admin-openrc.sh
-            owner=sandvine
-            group=sandvine
+            dest=/home/administrative/admin-openrc.sh
+            owner=administrative
+            group=administrative
             mode=0640
 
 - name: Creating demo-openrc.sh file
   template: src=demo-openrc.sh
-            dest=/home/sandvine/demo-openrc.sh
-            owner=sandvine
-            group=sandvine
+            dest=/home/administrative/demo-openrc.sh
+            owner=administrative
+            group=administrative
             mode=0640

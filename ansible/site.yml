@@ -1,7 +1,7 @@
 # This Playbook deploys OpenStack
 
 - hosts: all-in-one
-  user: sandvine
+  user: administrative
   sudo: yes
   roles:
   - role: bootstrap
@@ -18,7 +18,7 @@
   - role: heat
 
 - hosts: controller_nodes
-  user: sandvine
+  user: administrative
   sudo: yes
   roles:
   - role: bootstrap
@@ -40,14 +40,14 @@
 #  - role: ceilometer
 
 - hosts: network_nodes
-  user: sandvine
+  user: administrative
   sudo: yes
   roles:
   - role: bootstrap
 #  - role: neutron_lbr_net_agents
 
 - hosts: compute_nodes
-  user: sandvine
+  user: administrative
   sudo: yes
   roles:
   - role: bootstrap
@@ -55,7 +55,7 @@
 #  - role: neutron_lbr_cmpt_agent
 
 - hosts: vagrant-node
-  user: sandvine
+  user: administrative
   sudo: yes
   roles:
   - role: bootstrap

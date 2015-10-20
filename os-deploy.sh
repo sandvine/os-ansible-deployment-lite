@@ -218,7 +218,6 @@ echo
 echo "Configuring ansible/site.yml and OpenStack OpenRC files with your current $WHOAMI user..."
 sed -i -e 's/administrative/'$WHOAMI'/g' ansible/site.yml
 sed -i -e 's/administrative/'$WHOAMI'/g' ansible/roles/keystone/tasks/openrc-files.yml
-sed -i -e 's/administrative/'$WHOAMI'/g' ansible/roles/heat/tasks/main.yml
 
 
 # Configuring the default interface
