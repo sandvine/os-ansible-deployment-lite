@@ -19,27 +19,25 @@
         group=root
         mode=0644
 
-- name: Ubuntu Cloud Archive for OpenStack Kilo
-  apt_repository: repo='deb http://ubuntu-cloud.archive.canonical.com/ubuntu trusty-updates/kilo main'
+- name: Ubuntu Cloud Archive for OpenStack Liberty
+  apt_repository: repo='deb http://ubuntu-cloud.archive.canonical.com/ubuntu trusty-updates/liberty main'
 
 - name: Installing Cloud Archive Keyring before first update
   apt: name=ubuntu-cloud-keyring state=present
 
-- name: PPA Repositry of Ubuntu Cloud Archive for OpenStack Kilo with custom patches
-  apt_repository: repo='ppa:sandvine/cloud-archive-kilo'
 
 - name: Running apt-get update
   apt: update_cache=yes
 
-#- name: Running apt-get dist-upgrade
-#  apt: upgrade=dist
+- name: Running apt-get dist-upgrade
+  apt: upgrade=dist
 
 
 - name: Installing base packages
   action: apt pkg={{item}} state=installed
   with_items:
     - curl
-    - ntp
+    - chrony
     - openssl
     - iptables
     - htop
@@ -67,46 +65,22 @@
     - linux-generic-lts-vivid
     - linux-image-extra-virtual-lts-vivid
 
- 
-#- name: Configure UTC timezone
-#  copy: src=timezone
-#        dest=/etc/timezone
-#        owner=root
-#        group=root
-#        mode=0644
-#  notify:
-#    - update timezone
-
-#- name: Write custom sysctl.conf
-#  copy: src=sysctl.conf
-#        dest=/etc/sysctl.conf
-#        owner=root
-#        group=root
-#        mode=0644
-#        backup=yes
-#  notify:
-#    - reload sysctl
-
-#- name: Write custom sshd_config
-#  copy: src=sshd_config
-#        dest=/etc/ssh/sshd_config
-#        owner=root
-#        group=root
-#        mode=0644
-#        backup=yes
-#  notify:
-#    - restart sshd
-
 
 #- name: Blacklist nf_conntrack module
 #  lineinfile: dest=/etc/modprobe.d/blacklist.conf line="blacklist nf_conntrack"
+
+
+- lineinfile: dest=/etc/modules line="br_netfilter"
+
+- name: Loading br_netfilter network module
+  command: 'modprobe br_netfilter'
 
 
 - lineinfile: dest=/etc/modules line="dummy numdummies=3"
 
 - name: Loading dummy network module
   command: 'modprobe dummy numdummies=3'
-  register: dummy_loaded
+
 
 # blockinfile not support by Ansible upstream, need a cool solution for this
 #- name: Configuring Dummy interfaces

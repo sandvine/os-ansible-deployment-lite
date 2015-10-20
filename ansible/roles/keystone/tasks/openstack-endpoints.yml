@@ -16,18 +16,52 @@
   environment: openstack_env
   command: "{{item}}"
   with_items:
-  - openstack endpoint create --region "{{region}}" --publicurl http://{{public_addr}}:5000/v2.0 --internalurl http://{{controller_addr}}:5000/v2.0 --adminurl http://{{controller_addr}}:35357/v2.0 identity
-  - openstack endpoint create --region "{{region}}" --publicurl http://{{public_addr}}:5000/v3 --internalurl http://{{controller_addr}}:5000/v3 --adminurl http://{{controller_addr}}:35357/v3 identity
-  - openstack endpoint create --region "{{region}}" --publicurl http://{{public_addr}}:9292 --internalurl http://{{controller_addr}}:9292 --adminurl http://{{controller_addr}}:9292 image
-  - openstack endpoint create --region "{{region}}" --publicurl http://{{public_addr}}:8774/v2/%\(tenant_id\)s --internalurl http://{{controller_addr}}:8774/v2/%\(tenant_id\)s --adminurl http://{{controller_addr}}:8774/v2/%\(tenant_id\)s compute
-  - openstack endpoint create --region "{{region}}" --publicurl http://{{public_addr}}:8774/v3 --internalurl http://{{controller_addr}}:8774/v3 --adminurl http://{{controller_addr}}:8774/v3 computev3
-  - openstack endpoint create --region "{{region}}" --publicurl http://{{public_addr}}:9696 --internalurl http://{{controller_addr}}:9696 --adminurl http://{{controller_addr}}:9696 network
-  - openstack endpoint create --region "{{region}}" --publicurl http://{{public_addr}}:8776/v2/%\(tenant_id\)s --internalurl http://{{controller_addr}}:8776/v2/%\(tenant_id\)s --adminurl http://{{controller_addr}}:8776/v2/%\(tenant_id\)s volume
-  - openstack endpoint create --region "{{region}}" --publicurl http://{{public_addr}}:8776/v2/%\(tenant_id\)s --internalurl http://{{controller_addr}}:8776/v2/%\(tenant_id\)s --adminurl http://{{controller_addr}}:8776/v2/%\(tenant_id\)s volumev2
-  - openstack endpoint create --region "{{region}}" --publicurl http://{{public_addr}}:8004/v1/%\(tenant_id\)s --internalurl http://{{controller_addr}}:8004/v1/%\(tenant_id\)s --adminurl http://{{controller_addr}}:8004/v1/%\(tenant_id\)s orchestration
-  - openstack endpoint create --region "{{region}}" --publicurl http://{{public_addr}}:8000/v1 --internalurl http://{{controller_addr}}:8000/v1 --adminurl http://{{controller_addr}}:8000/v1 cloudformation
-  - openstack endpoint create --region "{{region}}" --publicurl http://{{public_addr}}:8773/services/Cloud --internalurl http://{{controller_addr}}:8773/services/Cloud --adminurl http://{{controller_addr}}:8773/services/Admin ec2
-  - openstack endpoint create --region "{{region}}" --publicurl http://{{public_addr}}:8080/v1/AUTH_%\(tenant_id\)s --internalurl http://{{controller_addr}}:8080/v1/AUTH_%\(tenant_id\)s --adminurl http://{{controller_addr}}:8080/v1 swift
-  - openstack endpoint create --region "{{region}}" --publicurl http://{{public_addr}}:8777 --internalurl http://{{controller_addr}}:8777 --adminurl http://{{controller_addr}}:8777 metering
+  # Identify v2.0
+  - openstack endpoint create --region "{{region}}" identity public http://{{public_addr}}:5000/v2.0
+  - openstack endpoint create --region "{{region}}" identity internal http://{{controller_addr}}:5000/v2.0
+  - openstack endpoint create --region "{{region}}" identity admin http://{{controller_addr}}:35357/v2.0
+  # Identify v3
+  #- openstack endpoint create --region "{{region}}" identity public http://{{public_addr}}:5000/v3
+  #- openstack endpoint create --region "{{region}}" identity internal http://{{controller_addr}}:5000/v3
+  #- openstack endpoint create --region "{{region}}" identity admin http://{{controller_addr}}:35357/v3
+  # Image
+  - openstack endpoint create --region "{{region}}" image public http://{{public_addr}}:9292
+  - openstack endpoint create --region "{{region}}" image internal http://{{controller_addr}}:9292
+  - openstack endpoint create --region "{{region}}" image admin http://{{controller_addr}}:9292
+  # Compute
+  - openstack endpoint create --region "{{region}}" compute public http://{{public_addr}}:8774/v2/%\(tenant_id\)s
+  - openstack endpoint create --region "{{region}}" compute internal http://{{controller_addr}}:8774/v2/%\(tenant_id\)s
+  - openstack endpoint create --region "{{region}}" compute admin http://{{controller_addr}}:8774/v2/%\(tenant_id\)s
+  # Compute v3
+  #- openstack endpoint create --region "{{region}}" computev3 public http://{{public_addr}}:8774/v3
+  #- openstack endpoint create --region "{{region}}" computev3 internal http://{{controller_addr}}:8774/v3
+  #- openstack endpoint create --region "{{region}}" computev3 admin http://{{controller_addr}}:8774/v3
+  # Network
+  - openstack endpoint create --region "{{region}}" network public http://{{public_addr}}:9696
+  - openstack endpoint create --region "{{region}}" network internal http://{{controller_addr}}:9696
+  - openstack endpoint create --region "{{region}}" network admin http://{{controller_addr}}:9696
+  # Volume
+  - openstack endpoint create --region "{{region}}" volumev2 public http://{{public_addr}}:8776/v2/%\(tenant_id\)s
+  - openstack endpoint create --region "{{region}}" volumev2 internal http://{{controller_addr}}:8776/v2/%\(tenant_id\)s
+  - openstack endpoint create --region "{{region}}" volumev2 admin http://{{controller_addr}}:8776/v2/%\(tenant_id\)s
+  # Swift
+  - openstack endpoint create --region "{{region}}" object-store public http://{{public_addr}}:8080/v1/AUTH_%\(tenant_id\)s
+  - openstack endpoint create --region "{{region}}" object-store internal http://{{controller_addr}}:8080/v1/AUTH_%\(tenant_id\)s
+  - openstack endpoint create --region "{{region}}" object-store admin http://{{controller_addr}}:8080/v1
+  # Heat
+  - openstack endpoint create --region "{{region}}" orchestration public http://{{public_addr}}:8004/v1/%\(tenant_id\)s
+  - openstack endpoint create --region "{{region}}" orchestration internal http://{{controller_addr}}:8004/v1/%\(tenant_id\)s
+  - openstack endpoint create --region "{{region}}" orchestration admin http://{{controller_addr}}:8004/v1/%\(tenant_id\)s
+  - openstack endpoint create --region "{{region}}" cloudformation public http://{{public_addr}}:8000/v1
+  - openstack endpoint create --region "{{region}}" cloudformation internal http://{{controller_addr}}:8000/v1
+  - openstack endpoint create --region "{{region}}" cloudformation admin http://{{controller_addr}}:8000/v1
+  # EC2
+  #- openstack endpoint create --region "{{region}}" ec2 public http://{{public_addr}}:8773/services/Cloud
+  #- openstack endpoint create --region "{{region}}" ec2 internal http://{{controller_addr}}:8773/services/Cloud
+  #- openstack endpoint create --region "{{region}}" ec2 admin http://{{controller_addr}}:8773/services/Admin
+  # Metering
+  - openstack endpoint create --region "{{region}}" metering public http://{{public_addr}}:8777
+  - openstack endpoint create --region "{{region}}" metering internal http://{{controller_addr}}:8777
+  - openstack endpoint create --region "{{region}}" metering admin http://{{controller_addr}}:8777
   when: keystone_started|changed
   register: openstack_endpoint_ready

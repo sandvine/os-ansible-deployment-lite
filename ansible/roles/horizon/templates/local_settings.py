@@ -2,7 +2,10 @@ import os
 
 from django.utils.translation import ugettext_lazy as _
 
+from horizon.utils import secret_key
+
 from openstack_dashboard import exceptions
+from openstack_dashboard.settings import HORIZON_CONFIG
 
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
@@ -11,14 +14,13 @@ TEMPLATE_DEBUG = DEBUG
 # WEBROOT is the location relative to Webserver root
 # should end with a slash.
 WEBROOT = '/'
-# LOGIN_URL = WEBROOT + 'auth/login/'
-# LOGOUT_URL = WEBROOT + 'auth/logout/'
+#LOGIN_URL = WEBROOT + 'auth/login/'
+#LOGOUT_URL = WEBROOT + 'auth/logout/'
 #
 # LOGIN_REDIRECT_URL can be used as an alternative for
 # HORIZON_CONFIG.user_home, if user_home is not set.
 # Do not set it to '/home/', as this will cause circular redirect loop
-# LOGIN_REDIRECT_URL = WEBROOT
-
+#LOGIN_REDIRECT_URL = WEBROOT
 
 # Required for Django 1.5.
 # If horizon is running in production (DEBUG is False), set this
@@ -33,6 +35,8 @@ WEBROOT = '/'
 # For more information see:
 # https://docs.djangoproject.com/en/1.4/ref/settings/#secure-proxy-ssl-header
 #SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTOCOL', 'https')
+# https://docs.djangoproject.com/en/1.5/ref/settings/#secure-proxy-ssl-header
+#SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # If Horizon is being served through SSL, then uncomment the following two
 # settings to better secure the cookies from security exploits
@@ -60,28 +64,13 @@ WEBROOT = '/'
 #OPENSTACK_KEYSTONE_DEFAULT_DOMAIN = 'Default'
 
 # Set Console type:
-# valid options would be "AUTO"(default), "VNC", "SPICE", "RDP", "SERIAL" or None
+# valid options are "AUTO"(default), "VNC", "SPICE", "RDP", "SERIAL" or None
 # Set to None explicitly if you want to deactivate the console.
 #CONSOLE_TYPE = "AUTO"
 
-# Default OpenStack Dashboard configuration.
-HORIZON_CONFIG = {
-    'user_home': 'openstack_dashboard.views.get_user_home',
-    'ajax_queue_limit': 10,
-    'auto_fade_alerts': {
-        'delay': 3000,
-        'fade_duration': 1500,
-        'types': ['alert-success', 'alert-info']
-    },
-    'help_url': "http://docs.openstack.org",
-    'exceptions': {'recoverable': exceptions.RECOVERABLE,
-                   'not_found': exceptions.NOT_FOUND,
-                   'unauthorized': exceptions.UNAUTHORIZED},
-    'modal_backdrop': 'static',
-    'angular_modules': [],
-    'js_files': [],
-    'js_spec_files': [],
-}
+# Show backdrop element outside the modal, do not close the modal
+# after clicking on backdrop.
+#HORIZON_CONFIG["modal_backdrop"] = "static"
 
 # Specify a regular expression to validate user passwords.
 #HORIZON_CONFIG["password_validator"] = {
@@ -106,13 +95,12 @@ LOCAL_PATH = os.path.dirname(os.path.abspath(__file__))
 # Set custom secret key:
 # You can either set it to a specific value or you can let horizon generate a
 # default secret key that is unique on this machine, e.i. regardless of the
-# amount of Python WSGI workers (if used behind Apache+mod_wsgi): However, there
-# may be situations where you would want to set this explicitly, e.g. when
-# multiple dashboard instances are distributed on different machines (usually
-# behind a load-balancer). Either you have to make sure that a session gets all
-# requests routed to the same dashboard instance or you set the same SECRET_KEY
-# for all of them.
-from horizon.utils import secret_key
+# amount of Python WSGI workers (if used behind Apache+mod_wsgi): However,
+# there may be situations where you would want to set this explicitly, e.g.
+# when multiple dashboard instances are distributed on different machines
+# (usually behind a load-balancer). Either you have to make sure that a session
+# gets all requests routed to the same dashboard instance or you set the same
+# SECRET_KEY for all of them.
 SECRET_KEY = secret_key.generate_or_read_from_file('/var/lib/openstack-dashboard/secret_key')
 
 # We recommend you use memcached for development; otherwise after every reload
@@ -150,7 +138,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 OPENSTACK_HOST = "{{public_addr}}"
 OPENSTACK_KEYSTONE_URL = "http://%s:5000/v2.0" % OPENSTACK_HOST
-OPENSTACK_KEYSTONE_DEFAULT_ROLE = "_member_"
+OPENSTACK_KEYSTONE_DEFAULT_ROLE = "user"
 
 # Enables keystone web single-sign-on if set to True.
 #WEBSSO_ENABLED = False
@@ -204,8 +192,8 @@ OPENSTACK_KEYSTONE_BACKEND = {
 # Toggle LAUNCH_INSTANCE_LEGACY_ENABLED and LAUNCH_INSTANCE_NG_ENABLED to
 # determine the experience to enable.  Set them both to true to enable
 # both.
-#LAUNCH_INSTANCE_LEGACY_ENABLED = True
-#LAUNCH_INSTANCE_NG_ENABLED = False
+LAUNCH_INSTANCE_LEGACY_ENABLED = False
+LAUNCH_INSTANCE_NG_ENABLED = True
 
 # The Xen Hypervisor has the ability to set the mount point for volumes
 # attached to instances (other Hypervisors currently do not). Setting
@@ -214,6 +202,7 @@ OPENSTACK_KEYSTONE_BACKEND = {
 OPENSTACK_HYPERVISOR_FEATURES = {
     'can_set_mount_point': False,
     'can_set_password': False,
+    'requires_keypair': False,
 }
 
 # The OPENSTACK_CINDER_FEATURES settings can be used to enable optional
@@ -234,6 +223,19 @@ OPENSTACK_NEUTRON_NETWORK = {
     'enable_lb': True,
     'enable_firewall': True,
     'enable_vpn': True,
+    'enable_fip_topology_check': True,
+
+    # Neutron can be configured with a default Subnet Pool to be used for IPv4
+    # subnet-allocation. Specify the label you wish to display in the Address
+    # pool selector on the create subnet step if you want to use this feature.
+    'default_ipv4_subnet_pool_label': None,
+
+    # Neutron can be configured with a default Subnet Pool to be used for IPv6
+    # subnet-allocation. Specify the label you wish to display in the Address
+    # pool selector on the create subnet step if you want to use this feature.
+    # You must set this to enable IPv6 Prefix Delegation in a PD-capable
+    # environment.
+    'default_ipv6_subnet_pool_label': None,
 
     # The profile_support option is used to detect if an external router can be
     # configured via the dashboard. When using specific plugins the
@@ -250,6 +252,7 @@ OPENSTACK_NEUTRON_NETWORK = {
     # types in this list will be available to choose from when creating a
     # port.
     # VNIC types include 'normal', 'macvtap' and 'direct'.
+    # Set to empty list or None to disable VNIC type selection.
     'supported_vnic_types': ['*']
 }
 
@@ -262,6 +265,7 @@ OPENSTACK_NEUTRON_NETWORK = {
 #        ('aki', _('AKI - Amazon Kernel Image')),
 #        ('ami', _('AMI - Amazon Machine Image')),
 #        ('ari', _('ARI - Amazon Ramdisk Image')),
+#        ('docker', _('Docker')),
 #        ('iso', _('ISO - Optical Disk Image')),
 #        ('ova', _('OVA - Open Virtual Appliance')),
 #        ('qcow2', _('QCOW2 - QEMU Emulator')),
@@ -332,7 +336,7 @@ TIME_ZONE = "UTC"
 # Set this to True to display an 'Admin Password' field on the Change Password
 # form to verify that it is indeed the admin logged-in who wants to change
 # the password.
-# ENFORCE_PASSWORD_CHECK = False
+#ENFORCE_PASSWORD_CHECK = False
 
 # Modules that provide /auth routes that can be used to handle different types
 # of user authentication. Add auth plugins that require extra route handling to
@@ -348,7 +352,17 @@ TIME_ZONE = "UTC"
 
 # Path to directory containing policy.json files
 #POLICY_FILES_PATH = os.path.join(ROOT_PATH, "conf")
-# Map of local copy of service policy files
+
+# Map of local copy of service policy files.
+# Please insure that your identity policy file matches the one being used on
+# your keystone servers. There is an alternate policy file that may be used
+# in the Keystone v3 multi-domain case, policy.v3cloudsample.json.
+# This file is not included in the Horizon repository by default but can be
+# found at
+# http://git.openstack.org/cgit/openstack/keystone/tree/etc/ \
+# policy.v3cloudsample.json
+# Having matching policy files on the Horizon and Keystone servers is essential
+# for normal operation. This holds true for all services and their policy files.
 #POLICY_FILES = {
 #    'identity': 'keystone_policy.json',
 #    'compute': 'nova_policy.json',
@@ -363,12 +377,12 @@ TIME_ZONE = "UTC"
 # creating users and databases on database instances is turned on.
 # To disable these extensions set the permission here to something
 # unusable such as ["!"].
-# TROVE_ADD_USER_PERMS = []
-# TROVE_ADD_DATABASE_PERMS = []
+#TROVE_ADD_USER_PERMS = []
+#TROVE_ADD_DATABASE_PERMS = []
 
 # Change this patch to the appropriate static directory containing
 # two files: _variables.scss and _styles.scss
-#CUSTOM_THEME_PATH = 'static/themes/default'
+#CUSTOM_THEME_PATH = 'themes/default'
 
 LOGGING = {
     'version': 1,
@@ -615,6 +629,12 @@ SECURITY_GROUP_RULES = {
 # algorithms supported by Python's hashlib library.
 #OPENSTACK_TOKEN_HASH_ALGORITHM = 'md5'
 
+# Hashing tokens from Keystone keeps the Horizon session data smaller, but it
+# doesn't work in some cases when using PKI tokens.  Uncomment this value and
+# set it to False if using PKI tokens and there are 401 errors due to token
+# hashing.
+#OPENSTACK_TOKEN_HASH_ENABLED = True
+
 # AngularJS requires some settings to be made available to
 # the client side. Some settings are required by in-tree / built-in horizon
 # features. These settings must be added to REST_API_REQUIRED_SETTINGS in the
@@ -656,5 +676,13 @@ ALLOWED_HOSTS = '*'
 
 # Compress all assets offline as part of packaging installation
 COMPRESS_OFFLINE = True
+
+# DISALLOW_IFRAME_EMBED can be used to prevent Horizon from being embedded
+# within an iframe. Legacy browsers are still vulnerable to a Cross-Frame
+# Scripting (XFS) vulnerability, so this option allows extra security hardening
+# where iframes are not used in deployment. Default setting is True.
+# For more information see:
+# http://tinyurl.com/anticlickjack
+#DISALLOW_IFRAME_EMBED = True
 
 USE_X_FORWARDED_HOST = True

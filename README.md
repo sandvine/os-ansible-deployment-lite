@@ -34,7 +34,7 @@ D- Your `IP + FQDN + hostname + aliases` should be configured in your `/etc/host
 
 ## 1- Install Ubuntu 14.04.3 (Server or Desktop), details:
 
-* Hostname: "kilo-1"
+* Hostname: "liberty-1"
 * User: "administrative"
 * Password: "whatever"
 
@@ -63,12 +63,12 @@ The line that starts with `%sudo` must contains:
 
 One line in `/etc/hostname`:
 
-    kilo-1
+    liberty-1
 
 First two lines of `/etc/hosts` (do not touch IPv6 lines):
 
     127.0.0.1 localhost.localdomain localhost
-    127.0.1.1 kilo-1.yourdomain.com kilo-1 kilo
+    127.0.1.1 liberty-1.yourdomain.com liberty-1 liberty
 
 *NOTE: If you have fixed IP (v4 or v6), you can use it here (recommended).*
 
@@ -80,11 +80,11 @@ Make sure it is working:
     hostname -i # Must returns your IP (can be 127.0.1.1).
     hostname -a # Must returns your aliases.
 
-## 5- Deploy OpenStack Kilo
+## 5- Deploy OpenStack Liberty
 
 Then, you'll be able to deploy `OpenStack` by running:
 
-    bash <(curl -s https://raw.githubusercontent.com/sandvine/os-ansible-deployment-lite/kilo/misc/os-install.sh)
+    bash <(curl -s https://raw.githubusercontent.com/sandvine/os-ansible-deployment-lite/liberty/misc/os-install.sh)
 
 Well done!
 
@@ -111,7 +111,7 @@ Well done!
 
     sudo apt-get install git ansible=1.7.2+dfsg-1~ubuntu14.04.1
 
-    git clone -b kilo https://github.com/sandvine/os-ansible-deployment-lite.git
+    git clone -b liberty https://github.com/sandvine/os-ansible-deployment-lite.git
 
     cd os-ansible-deployment-lite
 
@@ -125,7 +125,7 @@ Well done!
 
     sudo apt-get install git ansible=1.7.2+dfsg-1~ubuntu14.04.1
 
-    git clone -b kilo https://github.com/sandvine/os-ansible-deployment-lite.git
+    git clone -b liberty https://github.com/sandvine/os-ansible-deployment-lite.git
 
     cd os-ansible-deployment-lite
 
@@ -151,7 +151,7 @@ B- The `br-ex` `Neutron` interface is bridged against the `dummy0` interface (`m
 
 Details:
 
-    http://docs.openstack.org/kilo/install-guide/install/apt/content/ch_basic_environment.html#basics-neutron-networking-network-node
+    http://docs.openstack.org/liberty/install-guide/install/apt/content/ch_basic_environment.html#basics-neutron-networking-network-node
 
 C- Because the `br-ex` is bridged against the `dummy0` interface, you'll need to create a `iptables masquerade` rule, so your `Instances` can reach the Internet through real `eth0`.
 

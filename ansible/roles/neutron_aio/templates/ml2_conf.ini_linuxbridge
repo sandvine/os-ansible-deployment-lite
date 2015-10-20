@@ -2,22 +2,23 @@
 # (ListOpt) List of network type driver entrypoints to be loaded from
 # the neutron.ml2.type_drivers namespace.
 #
-type_drivers = local,flat,vlan,gre,vxlan
-# Example: type_drivers = flat,vlan,gre,vxlan
+type_drivers = local,flat,vlan,gre,vxlan,geneve
+# Example: type_drivers = flat,vlan,gre,vxlan,geneve
 
 # (ListOpt) Ordered list of network_types to allocate as tenant
 # networks. The default value 'local' is useful for single-box testing
 # but provides no connectivity between hosts.
 #
-tenant_network_types = flat,vlan,vxlan
-# Example: tenant_network_types = vlan,gre,vxlan
+tenant_network_types = flat,vlan,vxlan,geneve
+# Example: tenant_network_types = vlan,gre,vxlan,geneve
+
 
 # (ListOpt) Ordered list of networking mechanism driver entrypoints
 # to be loaded from the neutron.ml2.mechanism_drivers namespace.
 mechanism_drivers = {{mechanism_drivers}},l2population
 # Example: mechanism_drivers = openvswitch,mlnx
 # Example: mechanism_drivers = arista
-# Example: mechanism_drivers = cisco,logger
+# Example: mechanism_drivers = openvswitch,cisco_nexus,logger
 # Example: mechanism_drivers = openvswitch,brocade
 # Example: mechanism_drivers = linuxbridge,brocade
 
@@ -49,12 +50,21 @@ extension_drivers = port_security
 # Example: physical_network_mtus = physnet1:1550, physnet2:1500
 # ======== end of items for MTU selection and advertisement =========
 
+# (StrOpt) Default network type for external networks when no provider
+# attributes are specified. By default it is None, which means that if
+# provider attributes are not specified while creating external networks
+# then they will have the same type as tenant networks.
+# Allowed values for external_network_type config option depend on the
+# network type values configured in type_drivers config option.
+# external_network_type =
+# Example: external_network_type = local
+
 [ml2_type_flat]
 # (ListOpt) List of physical_network names with which flat networks
 # can be created. Use * to allow flat networks with arbitrary
 # physical_network names.
 #
-flat_networks = external
+flat_networks = public
 # Example:flat_networks = physnet1,physnet2
 # Example:flat_networks = *
 
@@ -84,6 +94,22 @@ vni_ranges = 1:1000
 # vxlan_group =
 # Example: vxlan_group = 239.1.1.1
 
+[ml2_type_geneve]
+# (ListOpt) Comma-separated list of <vni_min>:<vni_max> tuples enumerating
+# ranges of Geneve VNI IDs that are available for tenant network allocation.
+#
+# vni_ranges =
+
+# (IntOpt) Geneve encapsulation header size is dynamic, this
+# value is used to calculate the maximum MTU for the driver.
+# this is the sum of the sizes of the outer ETH+IP+UDP+GENEVE
+# header sizes.
+# The default size for this field is 50, which is the size of the
+# Geneve header without any additional option headers
+#
+# max_header_size =
+# Example: max_header_size = 50 (Geneve headers with no additional options)
+
 [securitygroup]
 # Controls if neutron security group is enabled or not.
 # It should be false when you use nova security group.
@@ -107,4 +133,4 @@ l2_population = True
 agent_boot_time = 180
 
 [linux_bridge]
-physical_interface_mappings = external:dummy0,vxlan:dummy1
+physical_interface_mappings = public:dummy0,vxlan:dummy1

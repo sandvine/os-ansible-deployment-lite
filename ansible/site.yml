@@ -1,13 +1,14 @@
 # This Playbook deploys OpenStack
 
 - hosts: all-in-one
-  user: administrative
+  user: sandvine
   sudo: yes
   roles:
   - role: bootstrap
   - role: mysql
   - role: rabbitmq
   - role: memcached
+  - role: apache2
   - role: keystone
   - role: glance
   - role: nova_aio
@@ -17,13 +18,14 @@
   - role: heat
 
 - hosts: controller_nodes
-  user: administrative
+  user: sandvine
   sudo: yes
   roles:
   - role: bootstrap
   - role: mysql
   - role: rabbitmq
   - role: memcached
+  - role: apache2
   - role: keystone
 #  - role: openstack_data
 #  - role: keystone_web
@@ -38,14 +40,14 @@
 #  - role: ceilometer
 
 - hosts: network_nodes
-  user: administrative
+  user: sandvine
   sudo: yes
   roles:
   - role: bootstrap
 #  - role: neutron_lbr_net_agents
 
 - hosts: compute_nodes
-  user: administrative
+  user: sandvine
   sudo: yes
   roles:
   - role: bootstrap
@@ -53,13 +55,14 @@
 #  - role: neutron_lbr_cmpt_agent
 
 - hosts: vagrant-node
-  user: administrative
+  user: sandvine
   sudo: yes
   roles:
   - role: bootstrap
   - role: mysql
   - role: rabbitmq
   - role: memcached
+  - role: apache2
   - role: keystone
   - role: glance
   - role: nova_aio

@@ -98,6 +98,17 @@
   register: ml2_cfg_ovs_updated
 
 
+- name: Updating linuxbridge_agent.ini for Linux Bridges
+  template: src=linuxbridge_agent.ini
+            dest=/etc/neutron/plugins/ml2/linuxbridge_agent.ini
+            owner=root
+            group=neutron
+            mode=0640
+            backup=yes
+  when: br_mode == 'LBR' and neutron_stopped|changed
+  register: lbr_cfg_updated
+
+
 - name: Updating dhcp_agent.ini
   template: src=dhcp_agent.ini
             dest=/etc/neutron/dhcp_agent.ini
@@ -191,7 +202,7 @@
 
 - name: Creating Neutron External Network and its subnet
   environment: admin_openrc_env
-  shell: neutron net-create ext-net --router:external --provider:physical_network external --provider:network_type flat ; neutron subnet-create ext-net --name ext-subnet --allocation-pool start={{ext_net_start}},end={{ext_net_end}} --disable-dhcp --gateway {{ext_net_gateway}} {{ext_net_subnet}}
+  shell: neutron net-create ext-net --router:external --provider:physical_network public --provider:network_type flat ; neutron subnet-create ext-net --name ext-subnet --allocation-pool start={{ext_net_start}},end={{ext_net_end}} --disable-dhcp --gateway {{ext_net_gateway}} {{ext_net_subnet}}
   when: neutron_started|changed
   register: neutron_net_created
 

@@ -19,10 +19,16 @@
     - python-openstackclient
   register: keystone_installed
 
+
 - name: Stopping Keystone
   service: name=keystone state=stopped
   when: keystone_installed|changed
   register: keystone_stopped
+
+
+- name: Disabling Keystone Upstart Service, it now runs under Apache WSGI
+  lineinfile: dest=/etc/init/keystone.override line="manual"
+
 
 - name: Removing non-used sqlite database
   file: path=/var/lib/keystone/keystone.db state=absent
@@ -37,7 +43,8 @@
             group=root
             mode=0644
             backup=yes
-  when: keystone_stopped|changed
+  when: keystone_stopped|success and item.os_project == "keystone"
+  with_items: mysql_databases
   register: keystone_cfg_updated
 
 
@@ -47,21 +54,47 @@
   register: keystone_populated
 
 
-- name: Starting Keystone
-  service: name=keystone state=restarted
-  when: keystone_populated|changed and keystone_cleaned|changed
+- name: Creating Apache Keystone Virtual Host - Public
+  template: src=wsgi-keystone-public.conf
+            dest=/etc/apache2/sites-available/wsgi-keystone-public.conf
+            owner=root
+            group=root
+            mode=0644
+            backup=yes
+  register: keystone_pub_vhost_cfg_updated
+
+- name: Creating Apache Keystone Virtual Host - Internal
+  template: src=wsgi-keystone-internal.conf
+            dest=/etc/apache2/sites-available/wsgi-keystone-internal.conf
+            owner=root
+            group=root
+            mode=0644
+            backup=yes
+  register: keystone_intra_vhost_cfg_updated
+
+- file: src=/etc/apache2/sites-available/wsgi-keystone-public.conf
+        dest=/etc/apache2/sites-enabled/wsgi-keystone-public.conf
+        owner=root
+        group=root
+        state=link
+
+- file: src=/etc/apache2/sites-available/wsgi-keystone-internal.conf
+        dest=/etc/apache2/sites-enabled/wsgi-keystone-internal.conf
+        owner=root
+        group=root
+        state=link
+
+
+- name: Restarting Apache
+  service: name=apache2 state=restarted
+  when: keystone_pub_vhost_cfg_updated|changed and keystone_intra_vhost_cfg_updated|changed
   register: keystone_started
 
-- name: Wait a bit until Kestone starts up properly...
-  pause: seconds=5
-  when: keystone_started|changed
-  register: keystone_ready
-
-
-- include: openstack-pur.yml
 
 - include: openstack-services.yml
 
 - include: openstack-endpoints.yml
+
+- include: openstack-pur.yml
 
 - include: openrc-files.yml

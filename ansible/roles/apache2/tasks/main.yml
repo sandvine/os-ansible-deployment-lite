@@ -12,16 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Creating admin-openrc.sh file
-  template: src=admin-openrc.sh
-            dest=/home/sandvine/admin-openrc.sh
-            owner=sandvine
-            group=sandvine
-            mode=0640
-
-- name: Creating demo-openrc.sh file
-  template: src=demo-openrc.sh
-            dest=/home/sandvine/demo-openrc.sh
-            owner=sandvine
-            group=sandvine
-            mode=0640
+- name: Installing Apache2 Web Server
+  action: apt pkg={{item}} state=installed
+  with_items:
+    - apache2
+    - libapache2-mod-wsgi
+  register: apache2_installed

@@ -22,7 +22,7 @@ clear
 
 
 echo
-echo "Welcome to OpenStack Kilo Deployment!"
+echo "Welcome to OpenStack Liberty Deployment!"
 echo
 
 
@@ -36,7 +36,7 @@ echo
 echo "Cloning OpenStack Ansible Deployment Lite into your home directory..."
 echo
 cd ~
-git clone -b kilo https://github.com/sandvine/os-ansible-deployment-lite.git
+git clone -b liberty https://github.com/sandvine/os-ansible-deployment-lite.git
 
 
 echo

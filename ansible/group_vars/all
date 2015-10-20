@@ -6,7 +6,7 @@
 
 br_mode: "LBR"
 
-linuxnet_interface_driver: "nova.network.linux_net.LinuxBridgeInterfaceDriver"
+linuxnet_interface_driver: "nova.network.linux_net.NeutronLinuxBridgeInterfaceDriver"
 neutron_interface_driver: "neutron.agent.linux.interface.BridgeInterfaceDriver"
 mechanism_drivers: "linuxbridge"
 firewall_driver: "neutron.agent.linux.iptables_firewall.IptablesFirewallDriver"
@@ -32,6 +32,7 @@ metadata_secret: "UltraMeta13"
 openstack_env:
   OS_TOKEN: "{{admin_token}}"
   OS_URL: "http://{{controller_addr}}:35357/v2.0"
+  OS_IDENTITY_API_VERSION: "3"
 
 admin_openrc_env:
   OS_PROJECT_DOMAIN_ID: "default"
@@ -41,6 +42,8 @@ admin_openrc_env:
   OS_USERNAME: "admin"
   OS_PASSWORD: "admin_pass"
   OS_AUTH_URL: "http://controller-1.yourdomain.com:35357/v3"
+  OS_IDENTITY_API_VERSION: "3"
+  OS_IMAGE_API_VERSION: "1"
 
 ext_net_subnet: "172.31.254.128/25"
 ext_net_gateway: "172.31.254.129"

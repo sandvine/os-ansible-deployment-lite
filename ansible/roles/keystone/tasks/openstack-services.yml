@@ -21,12 +21,12 @@
   - openstack service create --name nova --description "OpenStack Compute" compute
   - openstack service create --name novav3 --description "OpenStack Compute V3" computev3
   - openstack service create --name neutron --description "OpenStack Networking" network
-  - openstack service create --name cinder --description "OpenStack Block Storage" volume
+  #- openstack service create --name cinder --description "OpenStack Block Storage" volume
   - openstack service create --name cinderv2 --description "OpenStack Block Storage" volumev2
+  - openstack service create --name swift --description "Swift Service" object-store
   - openstack service create --name heat --description "Orchestration" orchestration
   - openstack service create --name heat-cfn --description "Orchestration"  cloudformation
   - openstack service create --name ec2 --description "EC2 Compatibility Layer" ec2
-  - openstack service create --name swift --description "Swift Service" object-store
   - openstack service create --name ceilometer --description "OpenStack Metering Service" metering
   when: keystone_started|changed
   register: openstack_srvc_ready

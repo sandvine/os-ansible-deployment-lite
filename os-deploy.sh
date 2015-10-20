@@ -190,7 +190,7 @@ echo "Configuring Bridge Mode to "$BR_MODE" on ansible/group_vars/all file..."
 if [ "$BR_MODE" = "LBR" ]
 then
 	sed -i -e 's/br_mode:.*/br_mode: "LBR"/' ansible/group_vars/all
-	sed -i -e 's/linuxnet_interface_driver:.*/linuxnet_interface_driver: "nova.network.linux_net.LinuxBridgeInterfaceDriver"/' ansible/group_vars/all
+	sed -i -e 's/linuxnet_interface_driver:.*/linuxnet_interface_driver: "nova.network.linux_net.NeutronLinuxBridgeInterfaceDriver"/' ansible/group_vars/all
 	sed -i -e 's/neutron_interface_driver:.*/neutron_interface_driver: "neutron.agent.linux.interface.BridgeInterfaceDriver"/' ansible/group_vars/all
 	sed -i -e 's/mechanism_drivers:.*/mechanism_drivers: "linuxbridge"/' ansible/group_vars/all
 	sed -i -e 's/firewall_driver:.*/firewall_driver: "neutron.agent.linux.iptables_firewall.IptablesFirewallDriver"/' ansible/group_vars/all
