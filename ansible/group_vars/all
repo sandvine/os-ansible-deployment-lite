@@ -31,7 +31,7 @@ metadata_secret: "UltraMeta13"
 
 openstack_env:
   OS_TOKEN: "{{admin_token}}"
-  OS_URL: "http://{{controller_addr}}:35357/v2.0"
+  OS_URL: "http://{{controller_addr}}:35357/v3"
   OS_IDENTITY_API_VERSION: "3"
 
 admin_openrc_env:
