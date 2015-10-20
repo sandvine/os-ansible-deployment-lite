@@ -64,7 +64,6 @@
             group=root
             mode=0644
             backup=yes
-  register: keystone_pub_vhost_cfg_updated
 
 - name: Creating Apache Keystone Virtual Host - Internal
   template: src=wsgi-keystone-internal.conf
@@ -73,19 +72,20 @@
             group=root
             mode=0644
             backup=yes
-  register: keystone_intra_vhost_cfg_updated
 
 - file: src=/etc/apache2/sites-available/wsgi-keystone-public.conf
         dest=/etc/apache2/sites-enabled/wsgi-keystone-public.conf
         owner=root
         group=root
         state=link
+  register: keystone_pub_vhost_cfg_updated
 
 - file: src=/etc/apache2/sites-available/wsgi-keystone-internal.conf
         dest=/etc/apache2/sites-enabled/wsgi-keystone-internal.conf
         owner=root
         group=root
         state=link
+  register: keystone_intra_vhost_cfg_updated
 
 
 - name: Restarting Apache
