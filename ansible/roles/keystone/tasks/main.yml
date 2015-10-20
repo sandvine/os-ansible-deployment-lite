@@ -27,7 +27,10 @@
 
 
 - name: Disabling Keystone Upstart Service, it now runs under Apache WSGI
-  lineinfile: dest=/etc/init/keystone.override line="manual"
+  lineinfile: dest=/etc/init/keystone.override
+              line="manual"
+              state=present
+              create=true
 
 
 - name: Removing non-used sqlite database
