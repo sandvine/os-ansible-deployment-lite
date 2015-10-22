@@ -52,11 +52,30 @@ then
 fi
 
 
+# Verifying if you have enough CPU Cores.
+echo
+echo "Verifying if you have enough CPU Cores..."
+
+CPU_CORES=$(grep -c ^processor /proc/cpuinfo)
+
+if [ $CPU_CORES -lt 8 ]
+then
+	echo
+        echo "WARNING!!!"
+	echo "You do not have enough CPU Cores to run this system!"
+	echo "ABORTING!!!"
+	exit 1
+else
+        echo
+	echo "Okay, good, you have enough CPU Cores, proceeding..."
+fi
+
+
 # Verifying if host have Virtualization enabled, abort it if doesn't have.
 echo
 echo "Verifying if your CPU supports Virtualization..."
 
-sudo apt-get install -y cpu-checker
+sudo apt-get install -y cpu-checker 2>&1 > /dev/null
 
 if /usr/sbin/kvm-ok 2>&1 > /dev/null
 then
