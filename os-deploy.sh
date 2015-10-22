@@ -52,6 +52,24 @@ then
 fi
 
 
+# Verifying if host have Virtualization enabled, abort it if doesn't have.
+echo
+echo "Verifying if your CPU supports Virtualization..."
+
+sudo apt-get install -y cpu-checker
+
+if /usr/sbin/kvm-ok 2>&1 > /dev/null
+then
+	echo
+        echo "OK, Virtualization supported, proceeding..."
+else
+        echo "WARNING!!!"
+	echo "Virtualization NOT supported on this CPU or it is not enabled on your BIOS"
+	echo "ABORTING!!!"
+	exit 1
+fi
+
+
 # Detect some of the local settings:
 WHOAMI=$(whoami)
 HOSTNAME=$(hostname)
