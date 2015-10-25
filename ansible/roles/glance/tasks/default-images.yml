@@ -23,8 +23,8 @@
   - glance image-create --location http://cloud.centos.org/centos/6.6/images/CentOS-6-x86_64-GenericCloud-20141129_01.qcow2c --name "CentOS 6.6 - 64-bit - Cloud Based Image" --is-public true --container-format bare --disk-format qcow2
   - glance image-create --location http://download.cirros-cloud.net/0.3.4/cirros-0.3.4-i386-disk.img --name "CirrOS 0.3.4 - Minimalist - 32-bit - Cloud Based Image" --is-public true --container-format bare --disk-format qcow2
   - glance image-create --location http://download.cirros-cloud.net/0.3.4/cirros-0.3.4-x86_64-disk.img --name "CirrOS 0.3.4 - Minimalist - 64-bit - Cloud Based Image" --is-public true --container-format bare --disk-format qcow2
-  - glance image-create --location http://uec-images.ubuntu.com/releases/15.04/release/ubuntu-15.04-server-cloudimg-i386-disk1.img --is-public true --disk-format qcow2 --container-format bare --name "Ubuntu 15.04 - Vivid Vervet - 32-bit - Cloud Based Image"
-  - glance image-create --location http://uec-images.ubuntu.com/releases/15.04/release/ubuntu-15.04-server-cloudimg-amd64-disk1.img --is-public true --disk-format qcow2 --container-format bare --name "Ubuntu 15.04 - Vivid Vervet - 64-bit - Cloud Based Image"
+  - glance image-create --location http://uec-images.ubuntu.com/releases/15.10/release/ubuntu-15.10-server-cloudimg-i386-disk1.img --is-public true --disk-format qcow2 --container-format bare --name "Ubuntu 15.10 - Wily Werewolf - 32-bit - Cloud Based Image"
+  - glance image-create --location http://uec-images.ubuntu.com/releases/15.10/release/ubuntu-15.10-server-cloudimg-amd64-disk1.img --is-public true --disk-format qcow2 --container-format bare --name "Ubuntu 15.10 - Wily Werewolf - 64-bit - Cloud Based Image"
   - glance image-create --location http://uec-images.ubuntu.com/releases/12.04.4/12.04.5/ubuntu-12.04-server-cloudimg-i386-disk1.img --is-public true --disk-format qcow2 --container-format bare --name "Ubuntu 12.04.5 LTS - Precise Pangolin - 32-bit - Cloud Based Image"
   - glance image-create --location http://uec-images.ubuntu.com/releases/12.04.4/12.04.5/ubuntu-12.04-server-cloudimg-amd64-disk1.img --is-public true --disk-format qcow2 --container-format bare --name "Ubuntu 12.04.5 LTS - Precise Pangolin - 64-bit - Cloud Based Image"
   - glance image-create --location http://uec-images.ubuntu.com/releases/14.04.3/release/ubuntu-14.04-server-cloudimg-i386-disk1.img --is-public true --disk-format qcow2 --container-format bare --name "Ubuntu 14.04.3 LTS - Trusty Tahr - 32-bit - Cloud Based Image"
@@ -42,8 +42,8 @@
 #  - glance image-update --property hw_scsi_model=virtio-scsi --property hw_disk_bus=scsi "CentOS 6.6 - 64-bit - Cloud Based Image"
 #  - glance image-update --property hw_scsi_model=virtio-scsi --property hw_disk_bus=scsi "CirrOS 0.3.4 - Minimalist - 32-bit - Cloud Based Image"
 #  - glance image-update --property hw_scsi_model=virtio-scsi --property hw_disk_bus=scsi "CirrOS 0.3.4 - Minimalist - 64-bit - Cloud Based Image"
-#  - glance image-update --property hw_scsi_model=virtio-scsi --property hw_disk_bus=scsi "Ubuntu 15.04 - Vivid Vervet - 32-bit - Cloud Based Image"
-#  - glance image-update --property hw_scsi_model=virtio-scsi --property hw_disk_bus=scsi "Ubuntu 15.04 - Vivid Vervet - 64-bit - Cloud Based Image"
+#  - glance image-update --property hw_scsi_model=virtio-scsi --property hw_disk_bus=scsi "Ubuntu 15.10 - Wily Werewolf - 32-bit - Cloud Based Image"
+#  - glance image-update --property hw_scsi_model=virtio-scsi --property hw_disk_bus=scsi "Ubuntu 15.10 - Wily Werewolf - 64-bit - Cloud Based Image"
 #  - glance image-update --property hw_scsi_model=virtio-scsi --property hw_disk_bus=scsi "Ubuntu 12.04.5 LTS - Precise Pangolin - 32-bit - Cloud Based Image"
 #  - glance image-update --property hw_scsi_model=virtio-scsi --property hw_disk_bus=scsi "Ubuntu 12.04.5 LTS - Precise Pangolin - 64-bit - Cloud Based Image"
 #  - glance image-update --property hw_scsi_model=virtio-scsi --property hw_disk_bus=scsi "Ubuntu 14.04.3 LTS - Trusty Tahr - 32-bit - Cloud Based Image"
