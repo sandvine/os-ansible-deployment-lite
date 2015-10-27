@@ -29,15 +29,15 @@
 #  - nova flavor-key m1.micro set sas=true
   - nova flavor-create --ephemeral 2 --swap 256 --rxtx-factor 1.0 --is-public yes m1.tiny auto 512 4 1
 #  - nova flavor-key m1.tiny set sas=true
-  - nova flavor-create --ephemeral 8 --swap 512 --rxtx-factor 1.0 --is-public yes m1.little auto 1024 8 1
+  - nova flavor-create --ephemeral 4 --swap 512 --rxtx-factor 1.0 --is-public yes m1.little auto 1024 8 1
 #  - nova flavor-key m1.little set sas=true
-  - nova flavor-create --ephemeral 24 --swap 1024 --rxtx-factor 1.0 --is-public yes m1.small auto 2048 20 1
+  - nova flavor-create --ephemeral 12 --swap 1024 --rxtx-factor 1.0 --is-public yes m1.small auto 2048 20 1
 #  - nova flavor-key m1.small set sas=true
-  - nova flavor-create --ephemeral 48 --swap 2048 --rxtx-factor 1.0 --is-public yes m1.medium auto 4096 40 2
+  - nova flavor-create --ephemeral 24 --swap 2048 --rxtx-factor 1.0 --is-public yes m1.medium auto 4096 40 2
 #  - nova flavor-key m1.medium set sas=true
-  - nova flavor-create --ephemeral 96 --swap 4096 --rxtx-factor 1.0 --is-public yes m1.large auto 8192 80 4
+  - nova flavor-create --ephemeral 48 --swap 4096 --rxtx-factor 1.0 --is-public yes m1.large auto 8192 80 4
 #  - nova flavor-key m1.large set sas=true
-  - nova flavor-create --ephemeral 192 --swap 8192 --rxtx-factor 1.0 --is-public yes m1.xlarge auto 16384 160 8
+  - nova flavor-create --ephemeral 96 --swap 8192 --rxtx-factor 1.0 --is-public yes m1.xlarge auto 16384 160 8
 #  - nova flavor-key m1.xlarge set sas=true
   when: nova_started|changed
   register: nova_flavors_created
