@@ -27,16 +27,9 @@ echo
 
 
 echo
-echo "Adding Sandvine's Ubuntu PPA Repository"
-echo
-sudo apt-get install -y software-properties-common
-sudo add-apt-repository -y ppa:sandvine/packages
-
-
-echo
 echo "Installing Git and Ansible..."
 echo
-sudo apt-get install -y git ansible python-pycurl
+sudo apt-get install -y git ansible=1.7.2+dfsg-1~ubuntu14.04.1 python-pycurl
 
 
 echo
