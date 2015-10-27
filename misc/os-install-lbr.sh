@@ -36,7 +36,7 @@ sudo add-apt-repository -y ppa:sandvine/packages
 echo
 echo "Installing Git and Ansible..."
 echo
-sudo apt-get install -y git ansible
+sudo apt-get install -y git ansible python-pycurl
 
 
 echo
