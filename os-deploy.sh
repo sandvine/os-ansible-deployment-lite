@@ -58,7 +58,7 @@ echo "Verifying if you have enough CPU Cores..."
 
 CPU_CORES=$(grep -c ^processor /proc/cpuinfo)
 
-if [ $CPU_CORES -lt 8 ]
+if [ $CPU_CORES -lt 4 ]
 then
 	echo
         echo "WARNING!!!"
