@@ -76,10 +76,10 @@
   command: 'modprobe br_netfilter'
 
 
-- lineinfile: dest=/etc/modules line="dummy numdummies=3"
+- lineinfile: dest=/etc/modules line="dummy numdummies=6"
 
 - name: Loading dummy network module
-  command: 'modprobe dummy numdummies=3'
+  command: 'modprobe dummy numdummies=6'
 
 
 # blockinfile not support by Ansible upstream, need a cool solution for this

@@ -137,7 +137,7 @@ else
     echo
     echo "Configuring dummy module at /etc/modules..."
     sudo tee --append /etc/modules > /dev/null <<EOF
-dummy numdummies=3
+dummy numdummies=6
 EOF
 
     echo
