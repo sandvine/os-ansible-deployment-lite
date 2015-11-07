@@ -61,11 +61,11 @@
     - python-mysqldb
 
 
-- name: Installing Linux 3.19 for Ubuntu LTS
+- name: Installing Linux 4.2 for Ubuntu LTS
   action: apt pkg={{item}} state=installed
   with_items:
-    - linux-generic-lts-vivid
-    - linux-image-extra-virtual-lts-vivid
+    - linux-generic-lts-wily
+    - linux-image-extra-virtual-lts-wily
 
  
 #- name: Configure UTC timezone
