@@ -230,7 +230,7 @@ resources:
     type: OS::Neutron::Subnet
     properties:
       name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-control' } }
-      dns_nameservers: [192.168.196.20, 192.168.194.20]
+      dns_nameservers: [8.8.8.8, 8.8.4.4]
       network: { get_resource: ctrl_net }
       enable_dhcp: True
       cidr: 192.168.192/25
@@ -247,7 +247,7 @@ resources:
     type: OS::Neutron::Subnet
     properties:
       name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-service' } }
-      dns_nameservers: [192.168.196.20, 192.168.194.20]
+      dns_nameservers: [8.8.8.8, 8.8.4.4]
       network: { get_resource: service_net }
       enable_dhcp: True
       cidr: 192.168.192.128/25
@@ -262,7 +262,7 @@ resources:
     type: OS::Neutron::Subnet
     properties:
       name: { str_replace: { params: { $stack_name: { get_param: 'OS::stack_name' } }, template: '$stack_name-subscribers-ss1' } }
-      dns_nameservers: [192.168.196.20, 192.168.194.20]
+      dns_nameservers: [8.8.8.8, 8.8.4.4]
       network: { get_resource: data_sub_net1 }
       enable_dhcp: True
       cidr: 10.192/16
