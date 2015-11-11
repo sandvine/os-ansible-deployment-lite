@@ -63,7 +63,6 @@
   action: apt pkg={{item}} state=installed
   with_items:
     - linux-generic-lts-wily
-    - linux-image-extra-virtual-lts-wily
 
 
 #- name: Blacklist nf_conntrack module
