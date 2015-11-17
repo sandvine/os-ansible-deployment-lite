@@ -53,7 +53,11 @@
 
 
 - name: "Workarounding BUG LP #759725"
-  shell: perms==$(stat -c %a /boot/vmlinuz-$(uname -r)) ; if [[ $perms =~ 600 ]]; then dpkg-statoverride --update --add root root 0644 /boot/vmlinuz-$(uname -r) ; fi
+  copy: src=kernel-postinst-statoverride
+        dest=/etc/kernel/postinst.d/statoverride
+        owner=root
+        group=root
+        mode=0755
 
 
 - name: Updating nova.conf
