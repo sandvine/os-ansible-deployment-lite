@@ -41,8 +41,8 @@ D- Your `IP + FQDN + hostname + aliases` should be configured in your `/etc/host
 ## 2- Upgrade Ubuntu to the latest version, by running:
 
     sudo apt-get update
-    sudo apt-get dist-upgrade -y
-    sudo apt-get install linux-generic-lts-vivid -y
+    sudo apt-get -y dist-upgrade
+    sudo apt-get -y install linux-generic-lts-xenial
     sudo reboot
 
 ## 3- Basic requirements:
